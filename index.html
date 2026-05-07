@@ -1041,18 +1041,142 @@
             50%      { transform: translate(-50%, -50%) rotate(2deg); }
         }
         
-        /* New: Power line effect */
-        .power-line {
-            position: absolute;
-            height: 2px;
-            background: var(--text-color);
-            box-shadow: 0 0 10px var(--text-color);
-            animation: powerPulse 0.5s infinite alternate;
-            z-index: 5;
+        /* V6.1.4: POWER stage — "Switch on the power line" thematic boot.
+           Breaker flips (red→green), lightning arcs out, grid traces light up,
+           [ POWER :: ON ] stamp punctuates. Total ~1.15s (window 1.30s). */
+        .power-stage {
+            position: fixed;
+            inset: 0;
+            z-index: 12;
+            pointer-events: none;
+            overflow: hidden;
         }
-        @keyframes powerPulse {
-            0% { opacity: 0.3; }
-            100% { opacity: 1; }
+        /* breaker switch */
+        .power-stage .ps-breaker {
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 92px; height: 130px;
+            background: rgba(0,8,4,0.92);
+            border: 2px solid var(--text-color);
+            box-shadow: 0 0 18px rgba(0,255,65,0.45), inset 0 0 12px rgba(0,255,65,0.15);
+            border-radius: 6px;
+            font-family: var(--font-main);
+            opacity: 0;
+            animation: psBreakerIn 0.22s ease-out forwards, psBreakerOut 0.30s 0.85s ease-in forwards;
+        }
+        @keyframes psBreakerIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); filter: blur(4px); }
+            to   { opacity: 1; transform: translate(-50%, -50%) scale(1);   filter: blur(0); }
+        }
+        @keyframes psBreakerOut {
+            from { opacity: 1; }
+            to   { opacity: 0; transform: translate(-50%, -50%) scale(1.15); filter: blur(6px) brightness(1.6); }
+        }
+        .power-stage .ps-breaker .ps-lever {
+            position: absolute;
+            left: 50%; bottom: 12%;
+            width: 14px; height: 70px;
+            background: linear-gradient(180deg, #ffd166 0%, #c97a00 100%);
+            box-shadow: 0 0 8px rgba(255,180,80,0.8);
+            transform-origin: 50% 100%;
+            transform: translateX(-50%) rotate(45deg);
+            border-radius: 4px;
+            animation: psLeverFlip 0.28s 0.30s cubic-bezier(.4,1.4,.5,1) forwards;
+        }
+        @keyframes psLeverFlip {
+            0%   { transform: translateX(-50%) rotate(45deg);  background: linear-gradient(180deg, #ff5252, #a02020); }
+            55%  { transform: translateX(-50%) rotate(-15deg); background: linear-gradient(180deg, #ffd166, #c97a00); }
+            100% { transform: translateX(-50%) rotate(0deg);   background: linear-gradient(180deg, #5dffb1, #00aa55); }
+        }
+        .power-stage .ps-breaker .ps-label-off,
+        .power-stage .ps-breaker .ps-label-on {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.78em;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .power-stage .ps-breaker .ps-label-off {
+            top: 8%;
+            color: #ff5252;
+            text-shadow: 0 0 6px rgba(255,80,80,0.8);
+            animation: psLabelHide 0.25s 0.30s forwards;
+        }
+        .power-stage .ps-breaker .ps-label-on {
+            top: 8%;
+            color: #5dffb1;
+            text-shadow: 0 0 8px rgba(93,255,177,0.95);
+            opacity: 0;
+            animation: psLabelShow 0.25s 0.55s forwards;
+        }
+        @keyframes psLabelHide { to { opacity: 0; } }
+        @keyframes psLabelShow { to { opacity: 1; } }
+        /* lightning arcs spreading from center */
+        .power-stage .ps-arc {
+            position: absolute;
+            left: 50%; top: 50%;
+            width: 2px;
+            background: linear-gradient(180deg, transparent 0%, #fff 35%, #5dffb1 50%, #5dffb1 65%, transparent 100%);
+            box-shadow: 0 0 12px #5dffb1, 0 0 22px rgba(93,255,177,0.6);
+            transform-origin: 50% 0;
+            transform: translate(-50%, 0) rotate(var(--ang, 0deg)) scaleY(0);
+            opacity: 0;
+            animation: psArc 0.40s 0.50s ease-out forwards;
+        }
+        @keyframes psArc {
+            0%   { opacity: 0; transform: translate(-50%, 0) rotate(var(--ang, 0deg)) scaleY(0); }
+            25%  { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, 0) rotate(var(--ang, 0deg)) scaleY(1); filter: blur(2px); }
+        }
+        /* grid traces igniting */
+        .power-stage .ps-trace {
+            position: absolute;
+            background: linear-gradient(90deg, transparent 0%, #5dffb1 50%, transparent 100%);
+            box-shadow: 0 0 10px rgba(93,255,177,0.7);
+            opacity: 0;
+            animation: psTrace 0.45s var(--td, 0.55s) ease-out forwards;
+        }
+        .power-stage .ps-trace.h { height: 2px; left: 0; right: 0; transform: scaleX(0); transform-origin: 50% 0; }
+        .power-stage .ps-trace.v { width: 2px; top: 0; bottom: 0; transform: scaleY(0); transform-origin: 0 50%; background: linear-gradient(180deg, transparent 0%, #5dffb1 50%, transparent 100%); }
+        @keyframes psTrace {
+            0%   { opacity: 0; transform: scale3d(0,0,1); }
+            45%  { opacity: 1; transform: scale3d(1,1,1); }
+            100% { opacity: 0; transform: scale3d(1,1,1); }
+        }
+        /* white screen flash */
+        .power-stage .ps-flash {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(93,255,177,0.45) 25%, transparent 60%);
+            opacity: 0;
+            animation: psFlash 0.30s 0.50s ease-out forwards;
+            mix-blend-mode: screen;
+        }
+        @keyframes psFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+        /* "POWER :: ON" stamp */
+        .power-stage .ps-stamp {
+            position: absolute;
+            left: 50%; bottom: 22%;
+            transform: translateX(-50%) scale(0.6);
+            font-family: var(--font-display);
+            font-size: 1.2em;
+            font-weight: 700;
+            letter-spacing: 8px;
+            color: #fff;
+            text-shadow: 0 0 10px #5dffb1, 0 0 22px rgba(93,255,177,0.7);
+            border: 2px solid #5dffb1;
+            background: rgba(0,30,15,0.85);
+            padding: 5px 14px;
+            box-shadow: 0 0 18px rgba(93,255,177,0.55);
+            opacity: 0;
+            white-space: nowrap;
+            animation: psStamp 0.35s 0.65s cubic-bezier(.3,1.6,.4,1) forwards;
+        }
+        @keyframes psStamp {
+            0%   { opacity: 0; transform: translateX(-50%) scale(1.6) rotate(-3deg); filter: blur(6px); }
+            70%  { opacity: 1; transform: translateX(-50%) scale(0.95) rotate(1deg); filter: blur(0); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0); }
         }
         
         /* New: Protection shield */
@@ -1550,6 +1674,136 @@
         }
         .hk-glitch::before { color: #ff3b6b; transform: translate(-1.5px, 0); mix-blend-mode: screen; opacity: 0.85; }
         .hk-glitch::after  { color: #00ffff; transform: translate(1.5px, 0); mix-blend-mode: screen; opacity: 0.75; }
+
+        /* V6.1.4: dimensional morph trail — top-of-viewport visualization that
+           shows point → line → plane → cube unfolding alongside the DIM ladder.
+           Per user feedback: connect "If I'm a set of points" with "give you my
+           DIMENSION" via a literal point→line→surface→volume progression. */
+        .dim-morph {
+            position: fixed;
+            top: 14%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 13;
+            pointer-events: none;
+            font-family: var(--font-main);
+        }
+        .dim-morph .dm-stage {
+            position: relative;
+            width: 90px; height: 90px;
+            background: rgba(0,8,4,0.85);
+            border: 1.5px solid rgba(0,255,65,0.45);
+            box-shadow: 0 0 14px rgba(0,255,65,0.45);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0;
+        }
+        .dim-morph .dm-stage[data-step="0"] { animation: dmStageIn 0.30s 0.05s ease-out forwards; }
+        .dim-morph .dm-stage[data-step="1"] { animation: dmStageIn 0.30s 0.25s ease-out forwards; }
+        .dim-morph .dm-stage[data-step="2"] { animation: dmStageIn 0.30s 0.45s ease-out forwards; }
+        .dim-morph .dm-stage[data-step="3"] { animation: dmStageIn 0.30s 0.65s ease-out forwards; }
+        @keyframes dmStageIn {
+            0%   { opacity: 0; transform: scale(0.65) translateY(8px); filter: blur(4px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+        .dim-morph .dm-arrow {
+            color: rgba(0,255,65,0.65);
+            font-size: 1.4em;
+            text-shadow: 0 0 6px rgba(0,255,65,0.6);
+            opacity: 0;
+            letter-spacing: 1px;
+        }
+        .dim-morph .dm-arrow[data-step="01"] { animation: dmStageIn 0.20s 0.22s forwards; }
+        .dim-morph .dm-arrow[data-step="12"] { animation: dmStageIn 0.20s 0.42s forwards; }
+        .dim-morph .dm-arrow[data-step="23"] { animation: dmStageIn 0.20s 0.62s forwards; }
+        .dim-morph .dm-label {
+            position: absolute; bottom: -22px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.62em;
+            letter-spacing: 2px;
+            color: rgba(0,255,65,0.78);
+            text-shadow: 0 0 4px rgba(0,255,65,0.6);
+            white-space: nowrap;
+        }
+        /* point */
+        .dim-morph .dm-shape.dm-pt {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: var(--text-color);
+            box-shadow: 0 0 12px var(--text-color), 0 0 22px rgba(0,255,65,0.5);
+        }
+        /* line — draws left-to-right */
+        .dim-morph .dm-shape.dm-ln {
+            width: 0; height: 2px;
+            background: var(--text-color);
+            box-shadow: 0 0 6px var(--text-color);
+            animation: dmLnDraw 0.40s 0.45s ease-out forwards;
+        }
+        @keyframes dmLnDraw { to { width: 64px; } }
+        .dim-morph .dm-shape.dm-ln::before, .dim-morph .dm-shape.dm-ln::after {
+            content: ''; position: absolute; top: -2.5px;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--text-color);
+            box-shadow: 0 0 6px var(--text-color);
+            opacity: 0;
+            animation: dmDotIn 0.20s ease-out forwards;
+        }
+        .dim-morph .dm-shape.dm-ln::before { left: -3.5px; animation-delay: 0.50s; }
+        .dim-morph .dm-shape.dm-ln::after  { right: -3.5px; animation-delay: 0.78s; }
+        @keyframes dmDotIn { to { opacity: 1; } }
+        /* square — scale up from a single dot */
+        .dim-morph .dm-shape.dm-sq {
+            width: 50px; height: 50px;
+            border: 2px solid var(--text-color);
+            box-shadow: 0 0 8px var(--text-color), inset 0 0 6px rgba(0,255,65,0.18);
+            background:
+                linear-gradient(0deg, transparent 49%, rgba(0,255,65,0.30) 50%, transparent 51%),
+                linear-gradient(90deg, transparent 49%, rgba(0,255,65,0.30) 50%, transparent 51%);
+            transform: scale(0.18);
+            opacity: 0;
+            animation: dmSqGrow 0.38s 0.65s cubic-bezier(.3,1.4,.5,1) forwards;
+        }
+        @keyframes dmSqGrow {
+            0%   { opacity: 0; transform: scale(0.18); }
+            70%  { opacity: 1; transform: scale(1.08); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        /* cube — 3D rotating with extruded perspective */
+        .dim-morph .dm-shape.dm-cb {
+            width: 56px; height: 56px;
+            perspective: 240px;
+            transform-style: preserve-3d;
+            opacity: 0;
+            animation: dmCbIn 0.38s 0.85s ease-out forwards;
+        }
+        .dim-morph .dm-shape.dm-cb .dm-cube {
+            position: relative; width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            transform: rotateX(-22deg) rotateY(-32deg);
+            animation: dmCbSpin 5s 0.85s linear infinite;
+        }
+        .dim-morph .dm-shape.dm-cb .face {
+            position: absolute; width: 56px; height: 56px;
+            border: 1.5px solid var(--highlight-color);
+            background: rgba(255,150,255,0.06);
+            box-shadow: 0 0 6px var(--highlight-color);
+        }
+        .dim-morph .dm-shape.dm-cb .f-front  { transform: translateZ(28px); }
+        .dim-morph .dm-shape.dm-cb .f-back   { transform: rotateY(180deg) translateZ(28px); }
+        .dim-morph .dm-shape.dm-cb .f-right  { transform: rotateY(90deg) translateZ(28px); }
+        .dim-morph .dm-shape.dm-cb .f-left   { transform: rotateY(-90deg) translateZ(28px); }
+        .dim-morph .dm-shape.dm-cb .f-top    { transform: rotateX(90deg) translateZ(28px); }
+        .dim-morph .dm-shape.dm-cb .f-bottom { transform: rotateX(-90deg) translateZ(28px); }
+        @keyframes dmCbIn {
+            0%   { opacity: 0; transform: scale(0.4); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes dmCbSpin {
+            from { transform: rotateX(-22deg) rotateY(-32deg); }
+            to   { transform: rotateX(-22deg) rotateY(328deg); }
+        }
 
         /* ===== DIMENSION (hacker dim_scan) ===== */
         .hk-dim-stage {
@@ -5620,10 +5874,12 @@
             // LRC 0:29.28 If I'm a set of point
             { time: 29.280, func: typeLine, args: { text: "If I'm a set of points", onComplete: drawPoints } },
             // LRC 0:30.89 Then I will give you my dimension
-            // V6.1.4: ladder rises FROM "Then I" so the visual is already on stage
-            // when DIMENSION text slams in. Emphasis pulled 700ms earlier (32.3 → 31.6)
-            // so it lands halfway through the prev lyric per user request.
-            { time: 30.890, func: typeLine, args: { text: "Then I will give you my", onComplete: showDimensionLadder } },
+            // V6.1.4: ladder + morph rise FROM "Then I" so the visual is already
+            // on stage when DIMENSION text slams in. Emphasis pulled 700ms earlier
+            // (32.3 → 31.6) so it lands halfway through the prev lyric per user
+            // request. showDimensionMorph adds top-of-screen 0D→1D→2D→3D
+            // progression to literally show "point becomes line, surface, volume".
+            { time: 30.890, func: typeLine, args: { text: "Then I will give you my", onComplete: () => { showDimensionLadder(); showDimensionMorph(); } } },
             { time: 31.600, func: showEmphasis, args: { text: "DIMENSION" } },
             // LRC 0:33.01 If I'm a circle
             { time: 33.010, func: typeLine, args: { text: "If I'm a circle", onComplete: drawCircle } },
@@ -7026,7 +7282,7 @@
             // 103.420s section break right after "The trance, the trance").
             // .v5-love-stage.theme-algebra (3rd LOVE = THEOREM panel) is intentionally kept
             // alive across section breaks so it persists into the trapped/finale arc.
-            document.querySelectorAll('.shape, .emoji-display, .gender-symbol, .time-display, .molecule, .sound-wave, .year-display, .unite-effect, .v61-unite-stage, .trance-stage, .trapped-stage, .power-line, .protection-shield, .object-particle, .sine-svg, .sine-formula, .tangent-svg, .sm-letter, .sm-spike, .sm-ring, .sm-chain-dot, .hk-osc-stage, .hk-inject-panel, .hk-sm-stage, .hk-ft-stage, .hk-sun-stage, .hk-icon-card, .hk-code-flash, .hk-exec-hero, .hk-dim-stage, .v4-stage, .kfx-layer, .kfx-isolation, .v5-breach, .v5-lang-stage, .v5-lang-card, .chaos-text, .v5-love-stage:not(.theme-algebra), .v5-love-mega, .v5-heart, .v6-loop-stage, .v6-code-panel').forEach(el => el.remove());
+            document.querySelectorAll('.shape, .emoji-display, .gender-symbol, .time-display, .molecule, .sound-wave, .year-display, .unite-effect, .v61-unite-stage, .trance-stage, .trapped-stage, .power-line, .power-stage, .protection-shield, .dim-morph, .object-particle, .sine-svg, .sine-formula, .tangent-svg, .sm-letter, .sm-spike, .sm-ring, .sm-chain-dot, .hk-osc-stage, .hk-inject-panel, .hk-sm-stage, .hk-ft-stage, .hk-sun-stage, .hk-icon-card, .hk-code-flash, .hk-exec-hero, .hk-dim-stage, .v4-stage, .kfx-layer, .kfx-isolation, .v5-breach, .v5-lang-stage, .v5-lang-card, .chaos-text, .v5-love-stage:not(.theme-algebra), .v5-love-mega, .v5-heart, .v6-loop-stage, .v6-code-panel').forEach(el => el.remove());
             _v5LangStage = null;
             _v5LangCount = 0;
             disposeSineScene();
@@ -7049,19 +7305,59 @@
 
         // --- Enhanced Effect Functions ---
         
-        // NEW: Power line effect
+        // V6.1.4: thematic boot sequence — breaker flips OFF→ON, lightning arcs
+        // out, grid traces ignite, [ POWER :: ON ] stamp.
+        // Window before "Remember to put on" @1.33s = 1300ms; total ~1150ms.
         function showPowerLines() {
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = 'power-line';
-                    line.style.top = `${Math.random() * 100}%`;
-                    line.style.left = '0';
-                    line.style.width = '100%';
-                    container.appendChild(line);
-                    setTimeout(() => line.remove(), 1000);
-                }, i * 200);
+            const stage = document.createElement('div');
+            stage.className = 'power-stage';
+            const breaker = document.createElement('div');
+            breaker.className = 'ps-breaker';
+            breaker.innerHTML = `
+                <span class="ps-label-off">OFF</span>
+                <span class="ps-label-on">ON</span>
+                <div class="ps-lever"></div>
+            `;
+            stage.appendChild(breaker);
+            // 8 lightning arcs radiating from center
+            for (let i = 0; i < 8; i++) {
+                const arc = document.createElement('div');
+                arc.className = 'ps-arc';
+                arc.style.setProperty('--ang', `${(i * 45 + Math.random() * 12).toFixed(0)}deg`);
+                arc.style.height = `${(40 + Math.random() * 25).toFixed(0)}vmin`;
+                arc.style.animationDelay = `${(0.50 + i * 0.018).toFixed(3)}s`;
+                stage.appendChild(arc);
             }
+            // grid traces igniting in cascade
+            const tracePositions = [
+                { dir: 'h', pos: 18, delay: 0.55 },
+                { dir: 'h', pos: 82, delay: 0.60 },
+                { dir: 'v', pos: 14, delay: 0.62 },
+                { dir: 'v', pos: 86, delay: 0.66 },
+                { dir: 'h', pos: 34, delay: 0.68 },
+                { dir: 'h', pos: 66, delay: 0.72 },
+            ];
+            tracePositions.forEach(t => {
+                const tr = document.createElement('div');
+                tr.className = `ps-trace ${t.dir}`;
+                if (t.dir === 'h') tr.style.top = `${t.pos}%`;
+                else tr.style.left = `${t.pos}%`;
+                tr.style.setProperty('--td', `${t.delay.toFixed(2)}s`);
+                stage.appendChild(tr);
+            });
+            // central flash + stamp
+            const flash = document.createElement('div'); flash.className = 'ps-flash';
+            const stamp = document.createElement('div'); stamp.className = 'ps-stamp';
+            stamp.textContent = '[ POWER :: ON ]';
+            stage.append(flash, stamp);
+
+            container.appendChild(stage);
+            setTimeout(() => {
+                if (!stage.isConnected) return;
+                stage.style.transition = 'opacity 0.18s ease-out';
+                stage.style.opacity = '0';
+                setTimeout(() => stage.remove(), 200);
+            }, 1150);
         }
         
         // NEW: Protection shield
@@ -7816,6 +8112,49 @@ PRIVS: NONE`;
         }
         
         function drawPoints() { clearShapes(); for (let i=0;i<50;i++) { const p=document.createElement('div'); p.className='shape point'; p.style.left=`${Math.random()*90+5}%`; p.style.top=`${Math.random()*90+5}%`; container.appendChild(p); }}
+
+        // V6.1.4: dimensional morph — point → line → plane → cube top-row visual.
+        // Bound to "Then I will give you my" alongside DIMENSION ladder, so the
+        // scattered points (already on screen) lead into a literal evolution
+        // through 0D / 1D / 2D / 3D shapes.
+        function showDimensionMorph() {
+            document.querySelectorAll('.dim-morph').forEach(el => el.remove());
+            const stage = document.createElement('div');
+            stage.className = 'dim-morph';
+            const cubeFaces = ['front','back','left','right','top','bottom']
+                .map(s => `<div class="face f-${s}"></div>`).join('');
+            stage.innerHTML = `
+                <div class="dm-stage" data-step="0">
+                    <div class="dm-shape dm-pt"></div>
+                    <span class="dm-label">0D · POINT</span>
+                </div>
+                <div class="dm-arrow" data-step="01">→</div>
+                <div class="dm-stage" data-step="1">
+                    <div class="dm-shape dm-ln"></div>
+                    <span class="dm-label">1D · LINE</span>
+                </div>
+                <div class="dm-arrow" data-step="12">→</div>
+                <div class="dm-stage" data-step="2">
+                    <div class="dm-shape dm-sq"></div>
+                    <span class="dm-label">2D · PLANE</span>
+                </div>
+                <div class="dm-arrow" data-step="23">→</div>
+                <div class="dm-stage" data-step="3">
+                    <div class="dm-shape dm-cb"><div class="dm-cube">${cubeFaces}</div></div>
+                    <span class="dm-label">3D · VOLUME</span>
+                </div>
+            `;
+            container.appendChild(stage);
+            // hold ~1.6s (window from 30.89 to 33.01 = 2.12s minus DIM emphasis
+            // overlap). 0.30s fade lets the cube spin a bit before exit.
+            setTimeout(() => {
+                if (!stage.isConnected) return;
+                stage.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
+                stage.style.opacity = '0';
+                stage.style.filter = 'blur(4px)';
+                setTimeout(() => stage.remove(), 320);
+            }, 1700);
+        }
         function drawCircle() { clearShapes(); const c=document.createElement('div'); c.className='shape circle'; const s=Math.min(innerWidth,innerHeight)*0.4; c.style.width=`${s}px`; c.style.height=`${s}px`; c.style.left=`calc(50% - ${s/2}px)`; c.style.top=`calc(50% - ${s/2}px)`; container.appendChild(c); }
 
         // ===== DIMENSION (hacker dim_scan) =====

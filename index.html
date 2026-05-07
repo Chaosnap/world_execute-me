@@ -351,6 +351,10 @@
             opacity: 0;
             animation: rebootRowIn 0.18s ease-out forwards;
             white-space: pre;
+            /* V6.1.5: vertical breathing room between reboot rows so the
+               OK/WARN/FATAL tags don't visually crash into adjacent lines */
+            line-height: 1.55;
+            margin: 1px 0;
         }
         #reboot-screen .rb-line.ok    { color: #6dffae; }
         #reboot-screen .rb-line.warn  { color: #ffd24a; }
@@ -371,9 +375,11 @@
             display: inline-block;
             min-width: 64px;
             text-align: center;
-            margin-right: 8px;
-            padding: 0 4px;
-            border-radius: 2px;
+            /* V6.1.5: more breathing room around the status pill so OK / WARN
+               / FATAL don't visually crash into the line text either side */
+            margin-right: 12px;
+            padding: 2px 8px;
+            border-radius: 3px;
             background: rgba(255,255,255,0.06);
             border: 1px solid rgba(255,255,255,0.2);
             color: rgba(255,255,255,0.78);
@@ -3602,7 +3608,10 @@
             z-index: 9;
             pointer-events: none;
             background: radial-gradient(circle at 50% 50%, transparent 85%, rgba(0,0,0,0.0) 100%);
-            animation: kfxIsolateVignette 0.55s 0.45s cubic-bezier(.4,0,.4,1) forwards;
+            /* V6.1.5: vignette slowed 0.55s/0.45s → 0.85s/0.70s for the
+               extended isolation window (showIsolation moved 117.0→116.40,
+               giving 1.55s before next clearScreen). */
+            animation: kfxIsolateVignette 0.85s 0.70s cubic-bezier(.4,0,.4,1) forwards;
         }
         @keyframes kfxIsolateVignette {
             0%   { background: radial-gradient(circle at 50% 50%, transparent 85%, rgba(0,0,0,0.0) 100%); }
@@ -3628,7 +3637,9 @@
             color: #ff8fc9;
             text-shadow: 0 0 10px rgba(255,140,200,0.95);
             opacity: 0;
-            animation: kfxIsoYouLeave 0.95s ease-in forwards;
+            /* V6.1.5: 0.95s → 1.50s — give viewer time to read [you] before
+               it slides offscreen */
+            animation: kfxIsoYouLeave 1.50s ease-in forwards;
         }
         @keyframes kfxIsoYouLeave {
             0%   { opacity: 0; transform: translateX(20px); filter: blur(3px); }
@@ -3646,7 +3657,8 @@
             box-shadow: 0 0 8px rgba(150,255,180,0.7), 0 0 14px rgba(255,140,200,0.5);
             border-radius: 2px;
             opacity: 0;
-            animation: kfxIsoLinkSnap 0.95s ease-in forwards;
+            /* V6.1.5: 0.95s → 1.50s — match slowed [you] departure */
+            animation: kfxIsoLinkSnap 1.50s ease-in forwards;
         }
         .kfx-isolation .iso-link::before {
             content: '×';
@@ -3658,7 +3670,8 @@
             font-weight: bold;
             text-shadow: 0 0 10px rgba(255,80,80,0.95), 0 0 20px rgba(255,80,80,0.6);
             opacity: 0;
-            animation: kfxIsoCross 0.7s 0.30s cubic-bezier(.3,1.6,.4,1) forwards;
+            /* V6.1.5: 0.7s/0.30s → 1.10s/0.48s, scaled with parent timing */
+            animation: kfxIsoCross 1.10s 0.48s cubic-bezier(.3,1.6,.4,1) forwards;
         }
         @keyframes kfxIsoLinkSnap {
             0%   { opacity: 0; transform: scaleX(0); }
@@ -3679,7 +3692,8 @@
             color: #ffe9f0;
             text-shadow: 0 0 10px rgba(255,140,180,0.95), 0 0 20px rgba(255,80,120,0.55);
             opacity: 0;
-            animation: kfxIsoMeAlone 0.95s ease-out forwards;
+            /* V6.1.5: 0.95s → 1.50s */
+            animation: kfxIsoMeAlone 1.50s ease-out forwards;
         }
         @keyframes kfxIsoMeAlone {
             0%   { opacity: 0; transform: translateX(-20px); filter: blur(3px); }
@@ -3703,7 +3717,9 @@
             padding: 3px 12px;
             background: rgba(20,0,15,0.5);
             opacity: 0;
-            animation: kfxIsoStamp 0.40s 0.60s ease-out forwards;
+            /* V6.1.5: delay 0.60s → 0.95s so the stamp lands after the slowed
+               link-snap, and lasts longer in view */
+            animation: kfxIsoStamp 0.55s 0.95s ease-out forwards;
         }
         @keyframes kfxIsoStamp {
             0%   { opacity: 0; transform: translate(-50%, 0) scale(0.7); filter: blur(4px); }
@@ -3719,7 +3735,9 @@
             transform: translate(-50%, -50%) scale(0.5);
             opacity: 0;
             box-shadow: 0 0 22px rgba(255,140,180,0.25);
-            animation: kfxIsoRing 0.55s 0.55s cubic-bezier(.3,.6,.4,1) forwards;
+            /* V6.1.5: 0.55s/0.55s → 0.85s/0.85s — ring closes on the slowed
+               schedule */
+            animation: kfxIsoRing 0.85s 0.85s cubic-bezier(.3,.6,.4,1) forwards;
         }
         @keyframes kfxIsoRing {
             0%   { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(0); }
@@ -6013,7 +6031,10 @@
             { time: 113.750, func: typeLineDecay, args: { text: "You have left...",        decayLevel: 3 } },
             { time: 114.650, func: typeLineDecay, args: { text: "You have left...",        decayLevel: 4 } },
             { time: 115.600, func: typeLineDecay, args: { text: "You have left me in",     decayLevel: 5 } },
-            { time: 117.000, func: showIsolation },
+            // V6.1.5: pulled 117.0 → 116.40 to give the slowed isolation
+            // animation (0.95s → 1.55s) room before the 117.95 clearScreen
+            // for "If I can erase all the pointless".
+            { time: 116.400, func: showIsolation },
             
             // LRC 1:57.95 If I can, if I can / 1:59.81 Erase all the pointless fragments
             { time: 117.950, func: clearScreenAndShapes },
@@ -6700,7 +6721,10 @@
         function fxSimulation() {
             const layer = _spawnKfxLayer('kfx-simulation');
             layer.textContent = '> world.boot(); reality.spawn(); user.observer = true; … MATRIX_SEED = 0x' + Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase();
-            setTimeout(() => layer.remove(), 1700);
+            // V6.1.5: extended 1700→2300ms so the seed text persists until the
+            // 16.04s binary-rain drum beat. Avoids the dead 0.6s gap that
+            // previously sat between SIMULATION ending and the rain dropping.
+            setTimeout(() => layer.remove(), 2300);
         }
 
         function fxLimitations() {
@@ -7005,12 +7029,15 @@
             stamp.textContent = 'left in :: ISOLATION';
             overlay.append(pair, ring, stamp);
             container.appendChild(overlay);
+            // V6.1.5: 950→1500ms hold to match slowed CSS phases. With
+            // showIsolation moved 117.0→116.40, total scene fits in the
+            // 1.55s window before the 117.95s clearScreen.
             setTimeout(() => {
                 if (!overlay.isConnected) return;
                 overlay.style.transition = 'opacity 0.20s ease-out';
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.remove(), 220);
-            }, 950);
+            }, 1500);
         }
 
         function fxFragments(text) {
@@ -7565,16 +7592,12 @@
             const tRight = document.createElement('div'); tRight.className = 'ust-trail right';
             stage.append(sLeft, sRight, tLeft, tRight);
 
-            // phase 2 flash + sigil (git-merge style)
+            // phase 2 flash (V6.1.5: removed git-merge ASCII sigil per user
+            // feedback — felt out of place under "So deeply, so deeply" and
+            // the streams + flash + depth rings already convey the unite beat
+            // without the extra textual layer)
             const flash = document.createElement('div'); flash.className = 'ust-flash';
-            const sigil = document.createElement('pre');  sigil.className = 'ust-sigil';
-            sigil.textContent =
-                "$ git merge --strategy=love\n" +
-                "  ├──── self ─────╮\n" +
-                "  │               │\n" +
-                "  ╰──── you ──────┤\n" +
-                "  → unified at HEAD";
-            stage.append(flash, sigil);
+            stage.append(flash);
 
             // phase 3 depth rings — V6.1.4: 4 (was 5), tighter stagger so the
             // last ring finishes at ~1.4 + 0.36 + 1.6 = 3.36s (≤ 3.76s nextClear).
@@ -8168,15 +8191,18 @@ PRIVS: NONE`;
                 </div>
             `;
             container.appendChild(stage);
-            // hold ~1.6s (window from 30.89 to 33.01 = 2.12s minus DIM emphasis
-            // overlap). 0.30s fade lets the cube spin a bit before exit.
+            // V6.1.5: hold extended 1700→2300ms so the morph (top-row 0D→3D)
+            // stays solid through the full DIMENSION beat instead of fading
+            // mid-emphasis. Window from 30.89 (typing start) to 33.01 ("If I'm
+            // a circle") = 2.12s — typing eats ~0.5s, so morph hold of 2.3s
+            // ends right around the next lyric onset, then 0.30s blur out.
             setTimeout(() => {
                 if (!stage.isConnected) return;
                 stage.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
                 stage.style.opacity = '0';
                 stage.style.filter = 'blur(4px)';
                 setTimeout(() => stage.remove(), 320);
-            }, 1700);
+            }, 2300);
         }
         function drawCircle() { clearShapes(); const c=document.createElement('div'); c.className='shape circle'; const s=Math.min(innerWidth,innerHeight)*0.4; c.style.width=`${s}px`; c.style.height=`${s}px`; c.style.left=`calc(50% - ${s/2}px)`; c.style.top=`calc(50% - ${s/2}px)`; container.appendChild(c); }
 
@@ -8225,15 +8251,16 @@ PRIVS: NONE`;
             });
             container.appendChild(stage);
 
-            // V6.1: was 2900ms — far longer than the 0.71s gap to "If I'm a circle".
-            // Compressed to 750ms hold + 250ms fade so the panel is gone before the
-            // next typeLine finishes typing.
+            // V6.1.5: extended 750→1300ms so the dim_scan panel stays solid
+            // through the full DIMENSION window (31.6s emphasis → 33.0s next
+            // lyric "If I'm a circle"). Previously the panel was fading away
+            // mid-DIMENSION which made it feel cut off.
             setTimeout(() => {
                 stage.style.transition = 'opacity 0.25s ease-out, filter 0.25s ease-out';
                 stage.style.opacity = '0';
                 stage.style.filter = 'blur(2px)';
                 setTimeout(() => stage.remove(), 270);
-            }, 750);
+            }, 1300);
         }
 
         // ===== Sine wave (SVG with stroke-dasharray draw + live phase shift) =====
@@ -8578,6 +8605,17 @@ PRIVS: NONE`;
             sinePhaseRAF = requestAnimationFrame(tick);
         };
         function drawLimitations() {
+             // V6.1.5: dispose any lingering sine + tangent visuals first so
+             // "If I approach infinity" lands on a clean stage. Previously the
+             // sine SVG (life 6.5s from 36.77s) was still up at 39.96s and
+             // collided with the limit horizon and approaching-infinity beat.
+             try { if (typeof disposeSineScene === 'function') disposeSineScene(); } catch (e) {}
+             document.querySelectorAll('.sine-svg, .sine-formula, .tangent-svg').forEach(el => {
+                 el.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
+                 el.style.opacity = '0';
+                 el.style.filter = 'blur(4px)';
+                 setTimeout(() => el.remove(), 320);
+             });
              // V6.1: redrew as soft pink "horizon" hints rather than harsh red bars,
              // pairing with the poetic limit curve in fxLimitations
              for(let i = 0; i < 2; i++) {

@@ -739,105 +739,195 @@
         /* V6.1 trance — hypnotic kaleidoscope. Three rotating ray layers (8/16/24-fold)
            at counter-rotating speeds + a breathing radial pulse + a single bright
            center pupil that contracts/dilates, evoking deep hypnotic absorption. */
-        /* V6.1 trance — TEXT VORTEX:
-            - 3 rotating rings of "TRANCE" labels (orbiting at staggered speeds/directions)
-            - dark purple vignette closes inward
-            - center: chromatic-aberration "TRANCE" sigil pulses & explodes outward
-            Total 1.85s — fits the 1.95s lyric window before clearScreen.
-            Replaces the kaleidoscope rays which (a) didn't spell anything and
-            (b) ran 3s — overflowing the lyric window. */
+        /* V6.1.3 trance — BIO-LINK terminal:
+           Lyric is "Oh switch my role / To S, to M / So we can enter / The trance".
+           Reads as "two consciousnesses synchronizing into a S/M trance state"
+           — code-aesthetic match: a HUD-style bio-link panel with ME/YOU columns
+           (heart-rate / breath / brainwave bars syncing), center merge progress
+           bar 0→100%, T-3..T-0 countdown, white flash, [ TRANCE :: ENGAGED ] stamp.
+           Total 1.85s — fits the 1.95s lyric window before clearScreen at 102.88s. */
         .trance-stage {
             position: fixed; inset: 0;
             pointer-events: none;
             z-index: 12;
+            display: flex; align-items: center; justify-content: center;
             opacity: 0;
             animation: trsFade 1.85s ease-out forwards;
         }
         @keyframes trsFade {
             0%   { opacity: 0; }
-            12%  { opacity: 1; }
-            78%  { opacity: 1; }
+            6%   { opacity: 1; }
+            82%  { opacity: 1; }
             100% { opacity: 0; }
         }
-        .trance-stage .trs-vignette {
+        .trance-stage .tp-bg {
             position: absolute; inset: 0;
-            background: radial-gradient(ellipse at 50% 50%,
-                rgba(60,20,100,0)    0%,
-                rgba(80,30,120,0.4)  35%,
-                rgba(20,5,40,0.88)   70%,
-                rgba(0,0,0,0.97)     100%);
-            animation: trsVig 1.85s cubic-bezier(.3,.6,.4,1) forwards;
+            background: radial-gradient(ellipse at 50% 50%, rgba(40,10,80,0.7) 0%, rgba(15,5,40,0.92) 60%, rgba(0,0,0,0.97) 100%);
             mix-blend-mode: multiply;
+            animation: trsBgIn 0.4s ease-out forwards;
+            opacity: 0;
         }
-        @keyframes trsVig {
-            0%   { transform: scale(2.0); opacity: 0; }
-            22%  { transform: scale(1.0); opacity: 0.95; }
-            72%  { transform: scale(1.18); opacity: 0.95; }
-            100% { transform: scale(0.5); opacity: 0; }
-        }
-        .trance-stage .trs-center {
-            position: absolute;
-            left: 50%; top: 50%;
-            transform: translate(-50%, -50%);
+        @keyframes trsBgIn { to { opacity: 0.9; } }
+
+        .trance-stage .trance-panel {
+            position: relative;
+            width: min(820px, 88vw);
+            background: rgba(8, 14, 22, 0.94);
+            border: 1px solid rgba(180, 100, 255, 0.7);
+            box-shadow: 0 0 32px rgba(180, 100, 255, 0.45), inset 0 0 16px rgba(180, 100, 255, 0.12);
+            padding: 16px 22px 14px;
             font-family: var(--font-display);
-            font-size: 4.2em;
-            letter-spacing: 16px;
-            font-weight: 700;
-            line-height: 1;
-            white-space: nowrap;
-            animation: trsCenterPulse 1.85s cubic-bezier(.2,.7,.3,1) forwards;
-            text-transform: uppercase;
-            mix-blend-mode: screen;
-            will-change: transform, opacity, filter;
+            color: #d4c8ff;
+            transform: translateY(36px) scale(0.92);
+            opacity: 0;
+            animation: trsPanelIn 0.30s cubic-bezier(.3,1.6,.5,1) forwards;
         }
-        .trance-stage .trs-center span {
-            position: absolute; left: 0; top: 0;
-            mix-blend-mode: screen;
+        @keyframes trsPanelIn {
+            0%   { opacity: 0; transform: translateY(36px) scale(0.92); filter: blur(8px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
-        .trance-stage .trs-center .layer-r { color: #ff5cae; animation: trsChrR 0.50s ease-in-out infinite; }
-        .trance-stage .trs-center .layer-g { color: #4cffc8; animation: trsChrG 0.50s ease-in-out infinite; }
-        .trance-stage .trs-center .layer-b { color: #6a8cff; animation: trsChrB 0.50s ease-in-out infinite; }
-        @keyframes trsChrR { 0%,100% { transform: translate(-3px, 1px); } 50% { transform: translate(4px, -2px); } }
-        @keyframes trsChrG { 0%,100% { transform: translate(2px, -2px); } 50% { transform: translate(-3px, 3px); } }
-        @keyframes trsChrB { 0%,100% { transform: translate(1px, 3px); } 50% { transform: translate(-2px, -3px); } }
-        @keyframes trsCenterPulse {
-            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); filter: blur(18px) brightness(2); }
-            22%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); filter: blur(0)    brightness(1.2); }
-            65%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); filter: blur(0)   brightness(1.05); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(2.0);  filter: blur(20px) brightness(2); }
+        .trance-panel .tp-head {
+            display: flex; justify-content: space-between;
+            font-size: 0.82em; letter-spacing: 3px;
+            color: rgba(255,180,255,0.92);
+            text-shadow: 0 0 8px rgba(180,100,255,0.6);
+            border-bottom: 1px dashed rgba(180,100,255,0.4);
+            padding-bottom: 5px; margin-bottom: 8px;
         }
-        .trance-stage .trs-ring {
-            position: absolute;
-            left: 50%; top: 50%;
-            width: 0; height: 0;
-            will-change: transform, opacity;
+        .trance-panel .tp-head .blip { color: #ff5cae; animation: blink 0.4s step-end infinite; margin-right: 4px; }
+
+        .trance-panel .tp-cols {
+            display: grid;
+            grid-template-columns: 1fr 1px 1fr;
+            gap: 14px;
+            margin-bottom: 8px;
         }
-        .trance-stage .trs-r0 { animation: trsRingCW 1.4s linear infinite, trsRingFade 1.85s ease-out forwards; }
-        .trance-stage .trs-r1 { animation: trsRingCCW 2.0s linear infinite, trsRingFade 1.85s ease-out forwards; }
-        .trance-stage .trs-r2 { animation: trsRingCW 2.8s linear infinite, trsRingFade 1.85s ease-out forwards; filter: blur(0.6px); }
-        @keyframes trsRingCW  { from { transform: translate(-50%, -50%) rotate(0); }    to { transform: translate(-50%, -50%) rotate(360deg); } }
-        @keyframes trsRingCCW { from { transform: translate(-50%, -50%) rotate(0); }    to { transform: translate(-50%, -50%) rotate(-360deg); } }
-        @keyframes trsRingFade {
-            0%   { opacity: 0; }
-            18%  { opacity: 0.85; }
-            70%  { opacity: 0.85; }
-            100% { opacity: 0; }
+        .trance-panel .tp-divider {
+            background: linear-gradient(180deg, transparent, rgba(180,100,255,0.55), transparent);
+            width: 1px;
         }
-        .trance-stage .trs-lbl {
-            position: absolute;
-            left: 0; top: 0;
-            transform: rotate(var(--a)) translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
-            font-family: var(--font-display);
-            letter-spacing: 5px;
-            color: rgba(255, 200, 230, 0.78);
-            text-shadow: 0 0 8px rgba(255, 100, 180, 0.7), 0 0 18px rgba(180, 60, 200, 0.45);
-            white-space: nowrap;
-            text-transform: uppercase;
+        .trance-panel .tp-col h3 {
+            font-size: 0.92em; letter-spacing: 4px;
+            margin: 0 0 6px;
             font-weight: 600;
         }
-        .trance-stage .trs-r0 .trs-lbl { font-size: 0.78em; color: rgba(255,180,230,0.92); }
-        .trance-stage .trs-r1 .trs-lbl { font-size: 0.92em; color: rgba(255,160,220,0.78); }
-        .trance-stage .trs-r2 .trs-lbl { font-size: 1.10em; color: rgba(220,160,255,0.62); letter-spacing: 8px; }
+        .trance-panel .tp-col.tp-me  h3 { color: #6effc7; text-shadow: 0 0 8px rgba(110,255,199,0.6); }
+        .trance-panel .tp-col.tp-you h3 { color: #ff6aa8; text-shadow: 0 0 8px rgba(255,106,168,0.6); }
+
+        .trance-panel .tp-row {
+            display: flex; align-items: center;
+            gap: 8px;
+            margin: 3px 0;
+            font-size: 0.74em;
+            opacity: 0;
+            animation: trsRowIn 0.22s ease-out forwards;
+        }
+        .trance-panel .tp-row .tp-lbl { width: 86px; opacity: 0.65; letter-spacing: 1px; }
+        .trance-panel .tp-row .tp-bar {
+            flex: 1; height: 7px;
+            position: relative;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(180,100,255,0.32);
+            overflow: hidden;
+        }
+        .trance-panel .tp-row .tp-bar > i {
+            display: block; height: 100%;
+            width: var(--w, 60%);
+            background: linear-gradient(90deg, currentColor 0%, rgba(255,255,255,0.55) 100%);
+            box-shadow: 0 0 6px currentColor;
+            transform: scaleX(0); transform-origin: 0 50%;
+            animation: trsBarFill 0.42s ease-out forwards;
+            animation-delay: inherit;
+        }
+        .trance-panel .tp-col.tp-me  .tp-row { color: #6effc7; }
+        .trance-panel .tp-col.tp-you .tp-row { color: #ff6aa8; }
+        @keyframes trsRowIn  { to { opacity: 1; } }
+        @keyframes trsBarFill { to { transform: scaleX(1); } }
+
+        .trance-panel .tp-merge {
+            margin-top: 6px;
+            font-size: 0.78em; letter-spacing: 3px;
+            color: rgba(255,200,255,0.92);
+            text-shadow: 0 0 6px rgba(180,100,255,0.5);
+        }
+        .trance-panel .tp-merge .label { display: block; margin-bottom: 3px; opacity: 0.78; }
+        .trance-panel .tp-merge .bar {
+            height: 14px; position: relative;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(180,100,255,0.55);
+            overflow: hidden;
+        }
+        .trance-panel .tp-merge .bar > i {
+            display: block; height: 100%; width: 0%;
+            background: linear-gradient(90deg, #6effc7 0%, #c896ff 50%, #ff6aa8 100%);
+            box-shadow: 0 0 12px rgba(180,100,255,0.7);
+            animation: trsMergeFill 0.65s 0.50s cubic-bezier(.3,.7,.4,1) forwards;
+        }
+        @keyframes trsMergeFill { to { width: 100%; } }
+        .trance-panel .tp-merge .pct {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff; text-shadow: 0 0 4px rgba(0,0,0,0.85);
+            font-size: 0.92em;
+            opacity: 0;
+            animation: trsRowIn 0.18s 1.10s ease-out forwards;
+        }
+
+        .trance-panel .tp-countdown {
+            margin-top: 10px;
+            font-size: 1.5em; letter-spacing: 8px;
+            text-align: center;
+            color: rgba(255,200,255,0.95);
+            text-shadow: 0 0 12px rgba(180,100,255,0.85);
+            opacity: 0;
+            animation: trsRowIn 0.18s 1.20s ease-out forwards, trsCountPulse 0.32s 1.20s ease-in-out 3 forwards;
+        }
+        @keyframes trsCountPulse {
+            0%, 100% { transform: scale(1);   filter: brightness(1); }
+            50%      { transform: scale(1.08); filter: brightness(1.5); }
+        }
+        .trance-panel .tp-foot {
+            margin-top: 6px;
+            font-size: 0.66em;
+            color: rgba(180,180,200,0.62);
+            border-top: 1px dashed rgba(180,100,255,0.28);
+            padding-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .trance-stage .tp-flash {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(180,100,255,0.45) 28%, transparent 60%);
+            opacity: 0;
+            animation: trsFlash 0.36s 1.55s ease-out forwards;
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+        @keyframes trsFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+
+        .trance-stage .tp-stamp {
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(0.4);
+            font-family: var(--font-display);
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: 10px;
+            color: #fff;
+            text-shadow: 0 0 16px rgba(255,180,255,0.95), 0 0 32px rgba(180,100,255,0.7);
+            border: 3px solid rgba(255,180,255,0.85);
+            padding: 8px 24px;
+            background: rgba(40,15,60,0.85);
+            box-shadow: 0 0 28px rgba(180,100,255,0.65);
+            opacity: 0;
+            white-space: nowrap;
+            animation: trsStampSlam 0.30s 1.60s cubic-bezier(.3,1.6,.4,1) forwards;
+        }
+        @keyframes trsStampSlam {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(2.0) rotate(-3deg); filter: blur(8px); }
+            70%  { opacity: 1; transform: translate(-50%, -50%) scale(0.95) rotate(1deg); filter: blur(0); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+        }
 
         /* V6.1: TRAPPED CAGE — for "Though we are trapped... We are trapped ah-"
            Six iron bars slam down, three horizontal rails clamp behind them,
@@ -5473,7 +5563,10 @@
             { time: 38.270, func: typeLine, args: { text: "Then you can sit on all my" } },
             { time: 39.700, func: showEmphasis, args: { text: "TANGENTS", onComplete: drawTangents } },
             // LRC 0:40.36 If I approach infinity
-            { time: 40.360, func: typeLine, args: { text: "If I approach infinity" } },
+            // V6.1.3: pulled 0.4s earlier (39.96 → fires at songTime 40.96 with
+            // +1s offset) so the lyric appears closer to its audio onset and
+            // doesn't feel laggy after the brief TANGENTS visualization.
+            { time: 39.960, func: typeLine, args: { text: "If I approach infinity" } },
             // LRC 0:41.92 Then you can be my limitations
             { time: 41.920, func: typeLine, args: { text: "Then you can be my", onComplete: drawLimitations } },
             { time: 43.200, func: showEmphasis, args: { text: "LIMITATIONS" } },
@@ -6773,6 +6866,16 @@
                 r.style.animationDelay = `${i * 0.18}s`;
                 layer.appendChild(r);
             }
+            // V6.1.3: trigger Vibration API on mobile devices (Android Chrome,
+            // Samsung Internet, Firefox Android). iOS Safari ignores this — no
+            // throw. Pattern matches the 5 ring pulses: 5x (vibrate 120 / pause 60).
+            // Must be inside a user-initiated event chain to fire — we ride the
+            // play-button click that bootstrapped the experience.
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate([120, 60, 120, 60, 120, 60, 120, 60, 140]);
+                }
+            } catch (e) { /* unsupported, ignore */ }
             setTimeout(() => layer.remove(), 2300);
         }
 
@@ -7384,43 +7487,57 @@ PRIVS: NONE`;
             setTimeout(() => stage.remove(), 3300);
         }
 
-        // Enter Trance — V6.1 text-vortex (replaces kaleidoscope which overflowed
-        // the 1.95s lyric window and didn't spell anything). 1.85s total.
+        // V6.1.3 trance — BIO-LINK terminal. Lyric "Switch my role / To S, to M /
+        // So we can enter / The trance" reads as two consciousnesses syncing into
+        // a S/M trance. We render that as a HUD: ME [S] vs YOU [M] columns each
+        // showing heart-rate / breath / brainwave bars, a center MERGE bar 0→100%,
+        // a 4-tick countdown (T-3..T-0), white flash, and a [ TRANCE :: ENGAGED ]
+        // stamp. 1.85s total — fits the 1.95s lyric window.
         function enterTrance() {
             const stage = document.createElement('div');
             stage.className = 'trance-stage';
-            // 1) vignette
-            const vig = document.createElement('div'); vig.className = 'trs-vignette';
-            stage.appendChild(vig);
-            // 2) chromatic-aberration center sigil — 3 RGB layers + 1 white core
-            const center = document.createElement('div');
-            center.className = 'trs-center';
-            center.innerHTML = `
-                <span class="layer-r">TRANCE</span>
-                <span class="layer-g">TRANCE</span>
-                <span class="layer-b">TRANCE</span>
-                <span class="layer-core" style="position:relative;color:#fff;text-shadow:0 0 16px rgba(255,200,230,0.95), 0 0 36px rgba(255,140,220,0.65);">TRANCE</span>
+
+            const mkRow = (lbl, w, delay) =>
+                `<div class="tp-row" style="animation-delay:${delay}s; --w:${w}%;">
+                    <span class="tp-lbl">${lbl}</span>
+                    <span class="tp-bar"><i style="animation-delay:${(delay + 0.04).toFixed(2)}s;"></i></span>
+                </div>`;
+
+            stage.innerHTML = `
+                <div class="tp-bg"></div>
+                <div class="trance-panel">
+                    <div class="tp-head">
+                        <span><span class="blip">●</span>[ TRANCE :: BIO-LINK ]</span>
+                        <span>session :: 0xS&amp;M</span>
+                    </div>
+                    <div class="tp-cols">
+                        <div class="tp-col tp-me">
+                            <h3>:: ME [S]</h3>
+                            ${mkRow('heart_rate', 78, 0.18)}
+                            ${mkRow('breath',     64, 0.26)}
+                            ${mkRow('brain_α',    72, 0.34)}
+                        </div>
+                        <div class="tp-divider"></div>
+                        <div class="tp-col tp-you">
+                            <h3>:: YOU [M]</h3>
+                            ${mkRow('heart_rate', 82, 0.22)}
+                            ${mkRow('breath',     68, 0.30)}
+                            ${mkRow('brain_α',    74, 0.38)}
+                        </div>
+                    </div>
+                    <div class="tp-merge">
+                        <span class="label">CONSCIOUSNESS :: MERGE</span>
+                        <div class="bar">
+                            <i></i>
+                            <span class="pct">100% LOCKED</span>
+                        </div>
+                    </div>
+                    <div class="tp-countdown">T-3 .. T-2 .. T-1 .. ENGAGED</div>
+                    <div class="tp-foot">$ trance.bind(self, you) :: ack[handshake] :: subspace.enter()</div>
+                </div>
+                <div class="tp-flash"></div>
+                <div class="tp-stamp">[ TRANCE :: ENGAGED ]</div>
             `;
-            stage.appendChild(center);
-            // 3) three orbital rings of "TRANCE" labels
-            const rings = [
-                { idx: 0, count:  8, radius: 130 },
-                { idx: 1, count: 12, radius: 240 },
-                { idx: 2, count: 16, radius: 380 },
-            ];
-            rings.forEach(({ idx, count, radius }) => {
-                const ring = document.createElement('div');
-                ring.className = `trs-ring trs-r${idx}`;
-                for (let n = 0; n < count; n++) {
-                    const lbl = document.createElement('span');
-                    lbl.className = 'trs-lbl';
-                    lbl.style.setProperty('--a', `${(n / count) * 360}deg`);
-                    lbl.style.setProperty('--r', `${radius}px`);
-                    lbl.textContent = 'TRANCE';
-                    ring.appendChild(lbl);
-                }
-                stage.appendChild(ring);
-            });
             container.appendChild(stage);
             setTimeout(() => stage.remove(), 1900);
         }
@@ -7925,6 +8042,20 @@ PRIVS: NONE`;
                 `).join('')}
             `;
             parent.appendChild(inject);
+
+            // V6.1.3: schedule tangent visualization to fade out after 1.0s so
+            // the next lyric ("If I approach infinity") arrives on a clean canvas.
+            // Without this, the tangent SVG and inject panel persist until the
+            // AC/DC scene wipe — bleeding into infinity / limitations.
+            setTimeout(() => {
+                [svg, labelLayer, inject].forEach(el => {
+                    if (!el || !el.isConnected) return;
+                    el.style.transition = 'opacity 0.35s ease-out, filter 0.35s';
+                    el.style.opacity = '0';
+                    el.style.filter = 'blur(2px)';
+                    setTimeout(() => el.remove(), 380);
+                });
+            }, 1000);
         }
 
         // patch sine phase tick to also keep the reticle ring on the wave

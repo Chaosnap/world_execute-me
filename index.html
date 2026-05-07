@@ -2649,7 +2649,8 @@
             text-shadow: 0 0 6px rgba(0,255,65,0.7);
             padding-left: 100%;
             will-change: transform;
-            animation: hkChronoFwd 0.50s linear forwards, hkChronoBwd 0.65s 0.55s linear forwards;
+            /* V6.1.4: fwd quick→pivot pause→bwd longer for legibility. */
+            animation: hkChronoFwd 0.55s linear forwards, hkChronoBwd 0.85s 0.65s linear forwards;
         }
         @keyframes hkChronoFwd {
             from { transform: translateX(0); }
@@ -2662,23 +2663,43 @@
         .chrono-strip .yr { letter-spacing: 2px; }
         .chrono-strip .yr.bc { color: rgba(255,105,180,0.9); text-shadow: 0 0 6px rgba(255,105,180,0.8); }
         .chrono-strip .yr.ad { color: var(--highlight-color); text-shadow: 0 0 6px var(--highlight-color); }
+        /* V6.1.4: pivot moment now slams in big, scaled+rotated, then settles —
+           clearly punctuates the AD→BC reversal pivot. */
         .chrono-pivot {
             position: absolute;
             left: 50%; top: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.4);
             font-family: var(--font-main);
-            font-size: 0.78em;
-            color: var(--love-color);
-            text-shadow: 0 0 6px var(--love-color);
-            background: rgba(0,0,0,0.85);
-            border: 1px solid var(--love-color);
-            padding: 2px 6px;
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px var(--love-color), 0 0 18px rgba(255,80,150,0.7);
+            background: rgba(60,8,30,0.92);
+            border: 2px solid var(--love-color);
+            box-shadow: 0 0 22px rgba(255,80,150,0.55);
+            padding: 4px 12px;
             opacity: 0;
-            animation: hkPivotIn 0.28s 0.45s forwards;
-            letter-spacing: 2px;
+            white-space: nowrap;
+            animation: hkPivotSlam 0.42s 0.45s cubic-bezier(.3,1.6,.4,1) forwards;
+            letter-spacing: 3px;
             z-index: 5;
         }
-        @keyframes hkPivotIn { to { opacity: 1; } }
+        @keyframes hkPivotSlam {
+            0%   { opacity: 0; transform: translate(-50%,-50%) scale(2.2) rotate(-12deg); filter: blur(8px); }
+            70%  { opacity: 1; transform: translate(-50%,-50%) scale(0.95) rotate(3deg); filter: blur(0); }
+            100% { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+        }
+        /* V6.1.4: white-pink flash at the pivot moment to underline the reversal. */
+        .hk-chrono-stage .chrono-flash {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(255,105,180,0.55) 28%, transparent 60%);
+            opacity: 0;
+            animation: chrFlashAnim 0.32s 0.55s ease-out forwards;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            z-index: 4;
+        }
+        @keyframes chrFlashAnim { 0% { opacity: 0; } 38% { opacity: 1; } 100% { opacity: 0; } }
         .chrono-stamps {
             display: flex; justify-content: space-between;
             margin-top: 8px;
@@ -3316,107 +3337,140 @@
             (0.25-0.60s) each [you] LEAVES with a clear directional drift + "× LEFT" tag
             (0.55-0.95s) vignette closes in fast; "[ ME ]" emerges center, big & lonely
            Window: ~0.95s. Reading order is sequential and obvious. */
+        /* V6.1.4: ISOLATION redesigned to convey "you have LEFT me" narrative.
+           Phase 1 (0-0.25s): [you] ←link→ [me] paired at center, BOND status.
+           Phase 2 (0.25-0.55s): link snaps (red crack), [you] slides offscreen left.
+           Phase 3 (0.55-0.95s): vignette closes around lone [me], "left in ISOLATION"
+                                 stamp glows beneath. */
         .kfx-isolation {
             position: fixed;
             inset: 0;
             z-index: 9;
             pointer-events: none;
             background: radial-gradient(circle at 50% 50%, transparent 85%, rgba(0,0,0,0.0) 100%);
-            animation: kfxIsolateVignette 0.45s 0.50s cubic-bezier(.4,0,.4,1) forwards;
+            animation: kfxIsolateVignette 0.55s 0.45s cubic-bezier(.4,0,.4,1) forwards;
         }
         @keyframes kfxIsolateVignette {
             0%   { background: radial-gradient(circle at 50% 50%, transparent 85%, rgba(0,0,0,0.0) 100%); }
-            60%  { background: radial-gradient(circle at 50% 50%, transparent 16%, rgba(0,0,0,0.92) 50%); }
-            100% { background: radial-gradient(circle at 50% 50%, transparent 9%, rgba(0,0,0,0.99) 24%); }
+            55%  { background: radial-gradient(circle at 50% 50%, transparent 22%, rgba(0,0,0,0.85) 55%); }
+            100% { background: radial-gradient(circle at 50% 50%, transparent 11%, rgba(0,0,0,0.99) 28%); }
         }
-        .kfx-isolation .iso-you {
-            position: absolute;
-            font-family: var(--font-main);
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #ff8fc9;
-            text-shadow: 0 0 8px rgba(255,140,200,0.9), 0 0 22px rgba(255,140,200,0.4);
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.8);
-            white-space: nowrap;
-            letter-spacing: 2px;
-            animation: kfxIsoYou 0.85s ease-out forwards;
-        }
-        .kfx-isolation .iso-you::after {
-            content: ' × LEFT';
-            display: inline-block;
-            margin-left: 8px;
-            font-size: 0.55em;
-            font-weight: normal;
-            color: #ff5252;
-            text-shadow: 0 0 6px rgba(255,80,80,0.8);
-            opacity: 0;
-            animation: kfxIsoLeftTag 0.85s ease-out forwards;
-        }
-        @keyframes kfxIsoYou {
-            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); filter: blur(2px); }
-            18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0); filter: blur(0); }
-            32%  { opacity: 1; }
-            55%  { opacity: 0.7; }
-            100% { opacity: 0; transform: translate(calc(-50% + var(--dx,0)), calc(-50% + var(--dy,0))) scale(0.35); filter: blur(5px); }
-        }
-        @keyframes kfxIsoLeftTag {
-            0%   { opacity: 0; }
-            22%  { opacity: 0; }
-            32%  { opacity: 1; }
-            55%  { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .kfx-isolation .iso-me {
+        /* paired view: [you] and [me] side by side, connected */
+        .kfx-isolation .iso-pair {
             position: absolute;
             left: 50%; top: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            font-family: var(--font-display);
-            font-size: 2.6em;
-            color: #ffe9f0;
-            text-shadow: 0 0 14px rgba(255,140,180,0.95), 0 0 36px rgba(255,80,120,0.7);
-            opacity: 0;
-            letter-spacing: 10px;
-            animation: kfxIsoMe 0.55s 0.55s cubic-bezier(.2,1.6,.4,1) forwards;
-            font-weight: bold;
-        }
-        @keyframes kfxIsoMe {
-            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-            55%  { opacity: 1; transform: translate(-50%, -50%) scale(1.10); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
-        }
-        /* sub-tag "alone" beneath [ME] */
-        .kfx-isolation .iso-alone {
-            position: absolute;
-            left: 50%; top: calc(50% + 38px);
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 14px;
             font-family: var(--font-main);
-            font-size: 0.85em;
-            color: rgba(255, 180, 210, 0.65);
-            letter-spacing: 4px;
+            font-size: 1.4em;
+            font-weight: bold;
+            white-space: nowrap;
+            letter-spacing: 2px;
+        }
+        /* the [you] label — fades in, then slides offscreen left, breaking the bond */
+        .kfx-isolation .iso-you-tag {
+            color: #ff8fc9;
+            text-shadow: 0 0 10px rgba(255,140,200,0.95);
             opacity: 0;
-            animation: kfxIsoAlone 0.4s 0.75s ease-out forwards;
+            animation: kfxIsoYouLeave 0.95s ease-in forwards;
         }
-        @keyframes kfxIsoAlone {
-            0%   { opacity: 0; }
-            100% { opacity: 1; }
+        @keyframes kfxIsoYouLeave {
+            0%   { opacity: 0; transform: translateX(20px); filter: blur(3px); }
+            15%  { opacity: 1; transform: translateX(0);    filter: blur(0); }
+            32%  { opacity: 1; transform: translateX(0); }
+            55%  { opacity: 0.85; transform: translateX(-60px) scale(0.95); filter: blur(0); }
+            100% { opacity: 0; transform: translateX(-440px) scale(0.6); filter: blur(8px); }
         }
-        /* dotted ring of isolation — reinforces the "alone in a void" idea */
+        /* the connecting bond — green link, then snaps red, then dissolves */
+        .kfx-isolation .iso-link {
+            position: relative;
+            width: 110px;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(150,255,180,0.85) 0%, rgba(255,140,200,0.85) 100%);
+            box-shadow: 0 0 8px rgba(150,255,180,0.7), 0 0 14px rgba(255,140,200,0.5);
+            border-radius: 2px;
+            opacity: 0;
+            animation: kfxIsoLinkSnap 0.95s ease-in forwards;
+        }
+        .kfx-isolation .iso-link::before {
+            content: '×';
+            position: absolute;
+            left: 50%; top: -16px;
+            transform: translate(-50%, 0) scale(0);
+            color: #ff5252;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,80,80,0.95), 0 0 20px rgba(255,80,80,0.6);
+            opacity: 0;
+            animation: kfxIsoCross 0.7s 0.30s cubic-bezier(.3,1.6,.4,1) forwards;
+        }
+        @keyframes kfxIsoLinkSnap {
+            0%   { opacity: 0; transform: scaleX(0); }
+            18%  { opacity: 1; transform: scaleX(1); }
+            32%  { opacity: 1; transform: scaleX(1); }
+            38%  { opacity: 1; transform: scaleX(1.05); background: linear-gradient(90deg, #ff5252 0%, #ff5252 100%); }
+            55%  { opacity: 0.6; transform: scaleX(0.6); filter: blur(2px); }
+            100% { opacity: 0; transform: scaleX(0); }
+        }
+        @keyframes kfxIsoCross {
+            0%   { opacity: 0; transform: translate(-50%, 0) scale(0) rotate(-30deg); }
+            45%  { opacity: 1; transform: translate(-50%, 0) scale(1.4) rotate(8deg); }
+            70%  { opacity: 1; transform: translate(-50%, 0) scale(1.0) rotate(0); }
+            100% { opacity: 0; transform: translate(-50%, 0) scale(0.85) rotate(0); filter: blur(4px); }
+        }
+        /* the [me] label — initially paired, then alone & flickering */
+        .kfx-isolation .iso-me-tag {
+            color: #ffe9f0;
+            text-shadow: 0 0 10px rgba(255,140,180,0.95), 0 0 20px rgba(255,80,120,0.55);
+            opacity: 0;
+            animation: kfxIsoMeAlone 0.95s ease-out forwards;
+        }
+        @keyframes kfxIsoMeAlone {
+            0%   { opacity: 0; transform: translateX(-20px); filter: blur(3px); }
+            15%  { opacity: 1; transform: translateX(0);    filter: blur(0); }
+            55%  { opacity: 1; transform: translateX(0); text-shadow: 0 0 14px rgba(255,140,180,0.95); }
+            70%  { opacity: 0.55; transform: translateX(0); filter: brightness(0.7); }
+            85%  { opacity: 0.9; transform: translateX(0); filter: brightness(1.2); }
+            100% { opacity: 0.9; transform: translateX(0); filter: brightness(1); }
+        }
+        /* "left in :: ISOLATION" stamp beneath the lone [me] */
+        .kfx-isolation .iso-stamp {
+            position: absolute;
+            left: 50%; top: calc(50% + 36px);
+            transform: translate(-50%, 0) scale(0.85);
+            font-family: var(--font-main);
+            font-size: 0.78em;
+            color: rgba(255, 200, 220, 0.78);
+            letter-spacing: 5px;
+            white-space: nowrap;
+            border: 1px dashed rgba(255,140,180,0.5);
+            padding: 3px 12px;
+            background: rgba(20,0,15,0.5);
+            opacity: 0;
+            animation: kfxIsoStamp 0.40s 0.60s ease-out forwards;
+        }
+        @keyframes kfxIsoStamp {
+            0%   { opacity: 0; transform: translate(-50%, 0) scale(0.7); filter: blur(4px); }
+            100% { opacity: 1; transform: translate(-50%, 0) scale(1); filter: blur(0); }
+        }
+        /* dashed ring closing in around lone [me] */
         .kfx-isolation .iso-ring {
             position: absolute;
             left: 50%; top: 50%;
-            width: 280px; height: 280px;
+            width: 240px; height: 240px;
             border: 2px dashed rgba(255,140,180,0.55);
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0.5);
             opacity: 0;
-            box-shadow: 0 0 25px rgba(255,140,180,0.25);
+            box-shadow: 0 0 22px rgba(255,140,180,0.25);
             animation: kfxIsoRing 0.55s 0.55s cubic-bezier(.3,.6,.4,1) forwards;
         }
         @keyframes kfxIsoRing {
             0%   { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(0); }
             55%  { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05) rotate(45deg); }
-            100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.0) rotate(60deg); }
+            100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.0) rotate(60deg); }
         }
 
         /* FRAGMENTS — V6.3: memory shards crumbling in vacuum.
@@ -3465,7 +3519,7 @@
             transform: translate(-50%, -50%) scale(0.2);
             box-shadow: 0 0 18px rgba(176,102,255,0.6), inset 0 0 12px rgba(255,255,255,0.4);
             opacity: 0;
-            animation: fragWave 0.75s 0.18s cubic-bezier(.2,.6,.3,1) forwards;
+            animation: fragWave 0.95s 0.22s cubic-bezier(.2,.6,.3,1) forwards;
         }
         @keyframes fragWave {
             0%   { opacity: 0;   transform: translate(-50%, -50%) scale(0.2);  border-width: 2px; }
@@ -3485,7 +3539,7 @@
             opacity: 0;
             text-align: center;
             white-space: nowrap;
-            animation: hkRowIn 0.25s 0.10s forwards, fragTickerOut 0.30s 0.85s forwards;
+            animation: hkRowIn 0.25s 0.10s forwards, fragTickerOut 0.30s 1.10s forwards;
         }
         .kfx-fragments .frag-ticker .label { display: block; font-size: 0.55em; letter-spacing: 4px; opacity: 0.7; margin-bottom: 4px; color: rgba(255,140,200,0.85); }
         .kfx-fragments .frag-ticker .count { font-size: 1.4em; }
@@ -3504,7 +3558,7 @@
             border: 1px dashed rgba(255,150,200,0.6);
             padding: 6px 20px;
             background: rgba(0,0,0,0.55);
-            animation: fragNullIn 0.30s 0.82s ease-out forwards, hkRowOut 0.30s 1.05s forwards;
+            animation: fragNullIn 0.30s 1.05s ease-out forwards, hkRowOut 0.30s 1.30s forwards;
         }
         @keyframes fragNullIn {
             0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-3deg); }
@@ -6657,41 +6711,27 @@
         function fxIsolation() {
             const overlay = document.createElement('div');
             overlay.className = 'kfx-isolation';
-            // 5 [you] tags at fixed angular slots — readable, predictable, sequential.
-            // Each drifts radially outward and fades while a "× LEFT" stamp shows
-            // briefly. Then [ ME ] reveals at center surrounded by a dotted ring.
-            const slots = [
-                { angle: -130, radius: 32 },
-                { angle:  -50, radius: 30 },
-                { angle:  -10, radius: 36 },
-                { angle:   60, radius: 28 },
-                { angle:  140, radius: 34 },
-            ];
-            slots.forEach((s, i) => {
-                const y = document.createElement('div');
-                y.className = 'iso-you';
-                y.textContent = '[you]';
-                const rad = s.angle * Math.PI / 180;
-                y.style.left = `${50 + Math.cos(rad) * s.radius}%`;
-                y.style.top  = `${50 + Math.sin(rad) * s.radius * 0.85}%`;
-                const dx = Math.cos(rad) * 220;
-                const dy = Math.sin(rad) * 180;
-                y.style.setProperty('--dx', `${dx.toFixed(0)}px`);
-                y.style.setProperty('--dy', `${dy.toFixed(0)}px`);
-                y.style.animationDelay = `${(i * 0.04).toFixed(2)}s`;
-                overlay.appendChild(y);
-            });
+            // V6.1.4: paired-narrative isolation — [you] ←link→ [me], link snaps red
+            // (×), [you] slides offscreen, [me] left alone, vignette closes, stamp
+            // "left in :: ISOLATION" reveals. Tells the lyric's story in 3 phases.
+            const pair = document.createElement('div');
+            pair.className = 'iso-pair';
+            pair.innerHTML = `
+                <span class="iso-you-tag">[you]</span>
+                <span class="iso-link"></span>
+                <span class="iso-me-tag">[me]</span>
+            `;
             const ring = document.createElement('div'); ring.className = 'iso-ring';
-            const me   = document.createElement('div'); me.className   = 'iso-me';   me.textContent   = '[ ME ]';
-            const alone= document.createElement('div'); alone.className= 'iso-alone';alone.textContent= 'alone';
-            overlay.append(ring, me, alone);
+            const stamp = document.createElement('div'); stamp.className = 'iso-stamp';
+            stamp.textContent = 'left in :: ISOLATION';
+            overlay.append(pair, ring, stamp);
             container.appendChild(overlay);
             setTimeout(() => {
                 if (!overlay.isConnected) return;
                 overlay.style.transition = 'opacity 0.20s ease-out';
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.remove(), 220);
-            }, 1100);
+            }, 950);
         }
 
         function fxFragments(text) {
@@ -6719,10 +6759,10 @@
                 <div class="frag-null">≈ NULL ≈</div>
             `;
 
-            // V6.1: compressed timing (was 0.40-0.95s). Shards now collapse 0.20-0.55s
-            // so the whole scene finishes in ~1.0s instead of 2.7s; "pointless" window
-            // is only 1.30s before the next typeLine and the user complained the
-            // animation didn't finish.
+            // V6.1.4: balanced timing — earlier (1.0s) was too fast to read.
+            // Shards now collapse 0.30-0.75s, scene finishes ~1.30s + 0.20 fade
+            // ≈ 1.50s. Window before next typeLine "Then maybe…" @121.8s is 1.30s,
+            // so fade overlaps slightly with start of typing — acceptable.
             const SHARD_COUNT = 22;
             const placed = [];
             const cxPct = 50, cyPct = 50;
@@ -6740,11 +6780,11 @@
                 shard.style.left = `${xPct.toFixed(1)}%`;
                 shard.style.top  = `${yPct.toFixed(1)}%`;
                 shard.style.setProperty('--rot', `${rot.toFixed(1)}deg`);
-                shard.style.setProperty('--in-d', `${(0.04 + Math.random() * 0.10).toFixed(2)}s`);
-                // V6.1: tighter window — wave starts at 0.18s, collapses at 0.20-0.55s.
-                const tHit = 0.20 + (radiusPct / 38) * 0.35;
+                shard.style.setProperty('--in-d', `${(0.05 + Math.random() * 0.12).toFixed(2)}s`);
+                // V6.1.4: wave starts at 0.25s, collapses at 0.30-0.75s.
+                const tHit = 0.30 + (radiusPct / 38) * 0.45;
                 shard.style.setProperty('--out-d', `${tHit.toFixed(2)}s`);
-                shard.style.setProperty('--crack-d', `${(tHit - 0.04).toFixed(2)}s`);
+                shard.style.setProperty('--crack-d', `${(tHit - 0.05).toFixed(2)}s`);
                 // outward motion: drift away from center as the shard collapses
                 const outDist = 60 + Math.random() * 80;
                 shard.style.setProperty('--dx', `${(Math.cos(angle) * outDist).toFixed(0)}px`);
@@ -6778,10 +6818,10 @@
             const tickRaf = () => {
                 if (!counter || !counter.isConnected) return;
                 const elapsed = (performance.now() - startMs) / 1000;
-                if (elapsed < 0.20) {
+                if (elapsed < 0.30) {
                     counter.textContent = SHARD_COUNT;
-                } else if (elapsed < 0.85) {
-                    const left = Math.max(0, Math.round(SHARD_COUNT * (1 - (elapsed - 0.20) / 0.65)));
+                } else if (elapsed < 1.15) {
+                    const left = Math.max(0, Math.round(SHARD_COUNT * (1 - (elapsed - 0.30) / 0.85)));
                     counter.textContent = left;
                 } else {
                     counter.textContent = '0';
@@ -6791,14 +6831,15 @@
             };
             requestAnimationFrame(tickRaf);
 
-            // V6.1: layer self-removes in 1.20s (was 2.70s) so the next typeLine
-            // doesn't fight residual shards.
+            // V6.1.4: layer self-removes in 1.30s (was 1.0s) — slows the scene
+            // so user can read the shard names; 0.20s fade overlaps gently with
+            // the start of "Then maybe…" typing.
             setTimeout(() => {
                 if (!layer.isConnected) return;
                 layer.style.transition = 'opacity 0.20s ease-out';
                 layer.style.opacity = '0';
                 setTimeout(() => layer.remove(), 220);
-            }, 1000);
+            }, 1300);
         }
 
         function fxDisheartened() {
@@ -7169,7 +7210,8 @@
                 </div>
                 <div class="chrono-reel">
                     <div class="chrono-strip">${stripContent}</div>
-                    <div class="chrono-pivot">[ PIVOT @ T=0 ]</div>
+                    <div class="chrono-flash"></div>
+                    <div class="chrono-pivot">[ PIVOT @ T=0 → REVERSE ]</div>
                 </div>
                 <div class="chrono-stamps">
                     <span class="from">A.D. :: +1 yr/tick</span>
@@ -7182,10 +7224,10 @@
                 </div>
             `;
             container.appendChild(stage);
-            // V6.1.2: 1.55s — fwd 0.50s + bwd 0.65s starting at 0.55s = strip
-            // finishes around 1.20s; 1.55s lets the BC half settle and remain
-            // legible briefly. Window before uniteEffect at 54.74 is 1.75s.
-            setTimeout(() => stage.remove(), 1550);
+            // V6.1.4: extended life 1550 → 1700ms — fwd 0.55s + bwd 0.85s @0.65s
+            // = bwd ends at 1.50s; 1.70s gives 200ms settle on BC half. Window
+            // before uniteEffect (54.74 → +1750ms) is 1750ms.
+            setTimeout(() => stage.remove(), 1700);
         }
 
         // V6.1: "And we can unite / So deeply, so deeply" — three-phase reactive scene.

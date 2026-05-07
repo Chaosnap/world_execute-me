@@ -5804,6 +5804,39 @@
             hud._t = setTimeout(() => { hud.style.opacity = '0'; }, 1800);
         }
 
+        // Playback rate control (for slow-mo annotation review).
+        // Audio rate drives song.currentTime, which drives the timeline dispatcher,
+        // so lyrics arrive proportionally slower at lower rates. Individual animation
+        // setTimeouts still run at wall-clock speed, but that's fine for review —
+        // the goal is to give the user time to pause and annotate.
+        function _setPlaybackRate(r) {
+            try {
+                song.playbackRate = r;
+                song.defaultPlaybackRate = r;
+            } catch (e) {}
+            _showRateHud(r);
+            _updatePauseHintRate(r);
+        }
+        function _showRateHud(r) {
+            let hud = document.getElementById('rate-hud');
+            if (!hud) {
+                hud = document.createElement('div');
+                hud.id = 'rate-hud';
+                hud.style.cssText = 'position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:200;background:rgba(0,0,0,0.82);color:#ffd166;border:1px solid rgba(255,209,102,0.55);padding:6px 14px;font-family:monospace;font-size:13px;letter-spacing:1px;text-shadow:0 0 4px rgba(255,209,102,0.7);transition:opacity 0.4s;';
+                document.body.appendChild(hud);
+            }
+            hud.textContent = `PLAYBACK: ${r.toFixed(2)}x   1=1x  7=.75x  5=.5x  3=.33x`;
+            hud.style.opacity = '1';
+            clearTimeout(hud._t);
+            hud._t = setTimeout(() => { hud.style.opacity = '0'; }, 2000);
+        }
+        function _updatePauseHintRate(r) {
+            const overlay = document.getElementById('pause-overlay');
+            if (!overlay) return;
+            const rateBadge = overlay.querySelector('.rate-badge');
+            if (rateBadge) rateBadge.textContent = `${r.toFixed(2)}x`;
+        }
+
         // V6.1 annotation feature: tracks the most recent text-bearing timeline
         // event so notes captured via N key know which lyric/effect was on screen.
         let _lastLyricEvent = null;
@@ -5842,8 +5875,8 @@
             el.id = 'pause-overlay';
             el.innerHTML = `
                 <div class="pa-icon"><i></i><i></i></div>
-                <div class="pa-title">PAUSED</div>
-                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>N</kbd> add note · <kbd>L</kbd> list · <kbd>E</kbd> export</div>
+                <div class="pa-title">PAUSED <span class="rate-badge" style="font-size:0.45em;letter-spacing:2px;color:#ffd166;margin-left:14px;">1.00x</span></div>
+                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>N</kbd> add note · <kbd>L</kbd> list · <kbd>E</kbd> export · <kbd>1/7/5/3</kbd> speed</div>
             `;
             document.body.appendChild(el);
             return el;
@@ -5863,6 +5896,7 @@
                     clearInterval(t.id);
                     t.paused = true;
                 });
+                _updatePauseHintRate(song.playbackRate || 1);
                 pe.classList.add('show');
             } else {
                 document.body.classList.remove('paused');
@@ -5873,7 +5907,9 @@
                     if (t && t.resume) t.resume();
                 });
                 _pausedTypingTimers = [];
-                song.play().catch(() => {});
+                // re-assert rate (some browsers reset it on pause/play)
+                const r = song.playbackRate || 1;
+                song.play().then(() => { song.playbackRate = r; }).catch(() => {});
             }
         }
         // ===== V6.1: Annotation system =====
@@ -6045,6 +6081,18 @@
                 e.preventDefault();
             } else if (k === 'x' && e.shiftKey) {
                 clearAllNotes();
+                e.preventDefault();
+            } else if (e.key === '1') {
+                _setPlaybackRate(1.0);
+                e.preventDefault();
+            } else if (e.key === '7') {
+                _setPlaybackRate(0.75);
+                e.preventDefault();
+            } else if (e.key === '5') {
+                _setPlaybackRate(0.5);
+                e.preventDefault();
+            } else if (e.key === '3') {
+                _setPlaybackRate(0.33);
                 e.preventDefault();
             }
         });

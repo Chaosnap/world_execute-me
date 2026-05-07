@@ -6321,6 +6321,11 @@
         // V6.1: lyric offset (seconds). Positive = lyrics fire later than LRC time,
         // i.e. compensates for the case "lyrics feel ahead of the audio".
         // Adjust live via keyboard: [ -50ms, ] +50ms, \ reset to default.
+        // V6.1.5: 用户已多次确认这版 mp3 与 LRC 时间戳之间存在恒定 +1.00s
+        // 偏差，必须以 +1.00 为默认值。timeline 内所有 `time:` 都是 LRC 原始
+        // 时间戳，依赖 LYRIC_OFFSET=+1.00 才能与发声对齐。任何把它降回 0.00 或
+        // 把 timeline 时间整体上调 ~1s 的改动都会破坏对齐，严禁修改。如要微调
+        // 用 [ / ] ±50ms 一次。
         let LYRIC_OFFSET = 1.00;
         const _LYRIC_OFFSET_DEFAULT = 1.00;
 
@@ -6410,7 +6415,7 @@
             el.innerHTML = `
                 <div class="pa-icon"><i></i><i></i></div>
                 <div class="pa-title">PAUSED <span class="rate-badge" style="font-size:0.45em;letter-spacing:2px;color:#ffd166;margin-left:14px;">1.00x</span></div>
-                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>N</kbd> add note · <kbd>L</kbd> list · <kbd>E</kbd> export · <kbd>1/7/5/3</kbd> speed</div>
+                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>[</kbd><kbd>]</kbd> lyric ±50ms · <kbd>\\</kbd> offset reset · <kbd>N</kbd> note · <kbd>L</kbd> list · <kbd>E</kbd> export · <kbd>B</kbd> tap beat · <kbd>K</kbd> beats · <kbd>1/7/5/3</kbd> speed</div>
             `;
             document.body.appendChild(el);
             return el;

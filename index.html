@@ -5884,8 +5884,15 @@
             // LRC 0:33.01 If I'm a circle
             { time: 33.010, func: typeLine, args: { text: "If I'm a circle", onComplete: drawCircle } },
             // LRC 0:34.54 Then I will give you my circumference
+            // V6.1.5: fxCircumference fires AT THE SAME beat as "Then I will give
+            // you my" so the ring/π visual is on stage from the first word —
+            // not after typing completes. Animation runs 34.54→37.14s, fully
+            // overlapping the CIRCUMFERENCE keyword emphasis at 36.0. Emphasis
+            // passes noFx:true so the keyword FX isn't re-spawned mid-animation.
+            // (Same pattern as uniteEffect / "And we can unite" below.)
+            { time: 34.540, func: fxCircumference },
             { time: 34.540, func: typeLine, args: { text: "Then I will give you my" } },
-            { time: 36.000, func: showEmphasis, args: { text: "CIRCUMFERENCE" } },
+            { time: 36.000, func: showEmphasis, args: { text: "CIRCUMFERENCE", noFx: true } },
             // LRC 0:36.77 If I'm a sine wave
             { time: 36.770, func: typeLine, args: { text: "If I'm a sine wave", onComplete: drawSineWave } },
             // LRC 0:38.27 Then you can sit on all my tangents
@@ -5897,7 +5904,12 @@
             // doesn't feel laggy after the brief TANGENTS visualization.
             // V6.1.4: limit horizon lines now appear with "infinity" rather than
             // with "Then you can be my" — user feedback: "infinite 线条早点出，然后到 infinity"
-            { time: 39.960, func: typeLine, args: { text: "If I approach infinity", onComplete: drawLimitations } },
+            // V6.1.5: drawLimitations now fires AT THE START of "If I approach
+            // infinity" (was: onComplete, ~1.5s later). User wants the limit
+            // horizon visible from the start of the prior "if" line so it's
+            // already framing the stage when LIMITATIONS slams in at 43.2s.
+            { time: 39.960, func: drawLimitations },
+            { time: 39.960, func: typeLine, args: { text: "If I approach infinity" } },
             // LRC 0:41.92 Then you can be my limitations
             { time: 41.920, func: typeLine, args: { text: "Then you can be my" } },
             { time: 43.200, func: showEmphasis, args: { text: "LIMITATIONS" } },
@@ -6359,13 +6371,21 @@
                     </div>
                 `).join('');
             panel.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
                     <span style="color:#5dffb1;letter-spacing:2px;">[ NOTES (${sorted.length}) ]</span>
-                    <span style="opacity:0.6;font-size:10px;">N add · E export · L close · Shift+X clear</span>
+                    <span style="display:flex;gap:6px;">
+                        <button id="note-export-btn" type="button" style="background:#0a3a26;color:#b8ffd6;border:1px solid #2a6b48;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">导出</button>
+                        <button id="note-clear-btn" type="button" style="background:#3a0a0a;color:#ffb8b8;border:1px solid #6b2a2a;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">清空</button>
+                    </span>
                 </div>
+                <div style="opacity:0.55;font-size:10px;margin-bottom:6px;letter-spacing:1px;">N add · E export · L close · Shift+X clear</div>
                 ${items}
             `;
             document.body.appendChild(panel);
+            const exportBtn = panel.querySelector('#note-export-btn');
+            if (exportBtn) exportBtn.addEventListener('click', exportNotes);
+            const clearBtn = panel.querySelector('#note-clear-btn');
+            if (clearBtn) clearBtn.addEventListener('click', clearAllNotes);
         }
         function clearAllNotes() {
             const n = _loadNotes();
@@ -6613,17 +6633,20 @@
             }, 3800);
         }
 
-        function showEmphasis({ text, className = '', onComplete = null }) {
+        function showEmphasis({ text, className = '', onComplete = null, noFx = false }) {
             const el = document.createElement('div');
             el.className = `emphasis ${className}`;
             el.textContent = text;
             visuals.appendChild(el);
             visuals.scrollTop = visuals.scrollHeight;
 
-            // dispatch keyword FX
-            const fx = KEYWORD_FX[text.toUpperCase().trim()];
-            if (fx) {
-                try { fx(text); } catch (e) { console.error('kfx err', e); }
+            // dispatch keyword FX (skip when noFx — used when the visual was
+            // pre-fired earlier to bridge a too-tight lyric window)
+            if (!noFx) {
+                const fx = KEYWORD_FX[text.toUpperCase().trim()];
+                if (fx) {
+                    try { fx(text); } catch (e) { console.error('kfx err', e); }
+                }
             }
 
             if (onComplete) onComplete();

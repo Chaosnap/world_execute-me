@@ -6051,7 +6051,11 @@
             { time: 13.700, func: showEmphasis, args: { text: "SIMULATION" } },
             
             // Interlude 1: Binary Rain (LRC 0:16.04 onwards is instrumental)
-            { time: 16.040, func: startBinaryRain },
+            // V6.1.5: pinned to user-tapped drum beat (lyric-beats 15.727s
+            // songTime). With LYRIC_OFFSET=+1.00, time=14.727 fires at
+            // songTime 15.727 — exactly on the first rain-section drum hit.
+            // Was 16.040 → 1.31s late vs the actual beat.
+            { time: 14.727, func: startBinaryRain },
             { time: 29.000, func: stopBinaryRain },
             { time: 29.200, func: clearScreenAndShapes },
 
@@ -7004,10 +7008,11 @@
         function fxSimulation() {
             const layer = _spawnKfxLayer('kfx-simulation');
             layer.textContent = '> world.boot(); reality.spawn(); user.observer = true; … MATRIX_SEED = 0x' + Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase();
-            // V6.1.5: extended 1700→2300ms so the seed text persists until the
-            // 16.04s binary-rain drum beat. Avoids the dead 0.6s gap that
-            // previously sat between SIMULATION ending and the rain dropping.
-            setTimeout(() => layer.remove(), 2300);
+            // V6.1.5: SIMULATION emphasis fires at songTime 14.700 (time 13.700
+            // + LYRIC_OFFSET 1.00). User-tapped rain drum beat is at songTime
+            // 15.727. Matrix-seed lasts ~1000ms so it fades right when rain
+            // drops on that drum beat — no visual gap, no overhang.
+            setTimeout(() => layer.remove(), 1000);
         }
 
         function fxLimitations() {

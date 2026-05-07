@@ -223,14 +223,16 @@
 
         .ac-mode { --text-color: #ff4444; }
         .dc-mode { --text-color: #4444ff; }
-        /* V6.1: animated blur with built-in fade-in/out so removing the class never
-           snaps. Final keyframe is identity → smooth landing on the next lyric. */
-        .blind { animation: blindAnim 3s ease-out forwards; }
+        /* V6.1.4: breathing blur — 2 in/out cycles within 3s, smooth landing.
+           Convey "dizzy → focus → dizzy → focus" pulsing per user feedback. */
+        .blind { animation: blindAnim 3s ease-in-out forwards; }
         @keyframes blindAnim {
-            0%   { filter: blur(0)     brightness(1.0); }
-            8%   { filter: blur(5px)   brightness(0.3); }
-            78%  { filter: blur(5px)   brightness(0.3); }
-            100% { filter: blur(0)     brightness(1.0); }
+            0%   { filter: blur(0)     brightness(1.00); }
+            18%  { filter: blur(6px)   brightness(0.45); }
+            38%  { filter: blur(0.6px) brightness(0.95); }
+            60%  { filter: blur(6px)   brightness(0.45); }
+            82%  { filter: blur(0.6px) brightness(0.95); }
+            100% { filter: blur(0)     brightness(1.00); }
         }
         .time-travel { animation: timeWarp 3s ease-in-out; }
         @keyframes timeWarp { 0% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(180deg) sepia(1); } 100% { filter: hue-rotate(360deg); } }
@@ -901,12 +903,14 @@
             position: absolute; inset: 0;
             background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(180,100,255,0.45) 28%, transparent 60%);
             opacity: 0;
-            animation: trsFlash 0.36s 1.55s ease-out forwards;
+            animation: trsFlash 0.36s 1.05s ease-out forwards;
             mix-blend-mode: screen;
             pointer-events: none;
         }
         @keyframes trsFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
 
+        /* V6.1.4: pull stamp 0.5s earlier (1.60s → 1.10s) so user has ~0.7s of
+           clearly readable [ TRANCE :: ENGAGED ] before the stage exits at 1.85s. */
         .trance-stage .tp-stamp {
             position: absolute;
             left: 50%; top: 50%;
@@ -923,7 +927,7 @@
             box-shadow: 0 0 28px rgba(180,100,255,0.65);
             opacity: 0;
             white-space: nowrap;
-            animation: trsStampSlam 0.30s 1.60s cubic-bezier(.3,1.6,.4,1) forwards;
+            animation: trsStampSlam 0.30s 1.10s cubic-bezier(.3,1.6,.4,1) forwards;
         }
         @keyframes trsStampSlam {
             0%   { opacity: 0; transform: translate(-50%, -50%) scale(2.0) rotate(-3deg); filter: blur(8px); }
@@ -2290,7 +2294,9 @@
             padding: 8px 14px 10px;
             font-size: 0.95em;
             min-width: 280px;
-            max-width: 480px;
+            max-width: min(480px, 70vw);
+            box-sizing: border-box;
+            overflow: hidden;
             z-index: 18;
             pointer-events: none;
             transform: translate(-50%, -50%);
@@ -2307,8 +2313,11 @@
         }
         .hk-code-flash .cf-head .blip { color: #ff8e8e; animation: blink 0.6s step-end infinite; }
         .hk-code-flash .cf-line {
-            white-space: pre;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow: hidden;
             line-height: 1.35em;
+            max-height: 3.6em;
         }
         .hk-code-flash .cf-line .prompt { opacity: 0.55; color: var(--error-color); }
         .hk-code-flash .cf-tag {
@@ -2344,12 +2353,12 @@
             padding: 14px 22px 16px;
             min-width: 460px;
             max-width: 70vw;
+            box-sizing: border-box;
+            overflow: hidden;
             z-index: 19;
             pointer-events: none;
-            animation: hkPanelPop 0.3s ease-out, hkExecOut 0.4s 0.95s forwards;
-        }
-        @keyframes hkExecOut {
-            to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); filter: blur(3px); }
+            /* V6.1.4: pop-out is now driven by JS so per-call timing varies. */
+            animation: hkPanelPop 0.3s ease-out forwards;
         }
         .hk-exec-hero .eh-head {
             display: flex; justify-content: space-between;
@@ -2360,7 +2369,12 @@
             margin-bottom: 8px;
         }
         .hk-exec-hero .eh-head .pulse { color: #ff8e8e; animation: blink 0.5s step-end infinite; }
-        .hk-exec-hero .eh-line { line-height: 1.5em; }
+        .hk-exec-hero .eh-line {
+            line-height: 1.5em;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow: hidden;
+        }
         .hk-exec-hero .eh-tag {
             margin-top: 6px;
             font-size: 0.78em;
@@ -5527,7 +5541,7 @@
             { time: 0.030, func: typeLine, args: { text: "Switch on the power line", onComplete: showPowerLines } },
             // LRC 0:01.33 Remember to put on protection
             { time: 1.330, func: typeLine, args: { text: "Remember to put on" } },
-            { time: 2.500, func: showEmphasis, args: { text: "PROTECTION", onComplete: showProtectionShield } },
+            { time: 2.500, func: showEmphasis, args: { text: "PROTECTION" } },
             // LRC 0:03.58 Lay down your pieces
             { time: 3.580, func: typeLine, args: { text: "Lay down your pieces" } },
             // LRC 0:05.16 And let's begin object creation
@@ -5552,8 +5566,11 @@
             // LRC 0:29.28 If I'm a set of point
             { time: 29.280, func: typeLine, args: { text: "If I'm a set of points", onComplete: drawPoints } },
             // LRC 0:30.89 Then I will give you my dimension
-            { time: 30.890, func: typeLine, args: { text: "Then I will give you my" } },
-            { time: 32.300, func: showEmphasis, args: { text: "DIMENSION", onComplete: showDimensionLadder } },
+            // V6.1.4: ladder rises FROM "Then I" so the visual is already on stage
+            // when DIMENSION text slams in. Emphasis pulled 700ms earlier (32.3 → 31.6)
+            // so it lands halfway through the prev lyric per user request.
+            { time: 30.890, func: typeLine, args: { text: "Then I will give you my", onComplete: showDimensionLadder } },
+            { time: 31.600, func: showEmphasis, args: { text: "DIMENSION" } },
             // LRC 0:33.01 If I'm a circle
             { time: 33.010, func: typeLine, args: { text: "If I'm a circle", onComplete: drawCircle } },
             // LRC 0:34.54 Then I will give you my circumference
@@ -5568,9 +5585,11 @@
             // V6.1.3: pulled 0.4s earlier (39.96 → fires at songTime 40.96 with
             // +1s offset) so the lyric appears closer to its audio onset and
             // doesn't feel laggy after the brief TANGENTS visualization.
-            { time: 39.960, func: typeLine, args: { text: "If I approach infinity" } },
+            // V6.1.4: limit horizon lines now appear with "infinity" rather than
+            // with "Then you can be my" — user feedback: "infinite 线条早点出，然后到 infinity"
+            { time: 39.960, func: typeLine, args: { text: "If I approach infinity", onComplete: drawLimitations } },
             // LRC 0:41.92 Then you can be my limitations
-            { time: 41.920, func: typeLine, args: { text: "Then you can be my", onComplete: drawLimitations } },
+            { time: 41.920, func: typeLine, args: { text: "Then you can be my" } },
             { time: 43.200, func: showEmphasis, args: { text: "LIMITATIONS" } },
             
             // AC/DC — LRC 0:44.04 Switch my current
@@ -6239,12 +6258,11 @@
             container.classList.add('god-challenge');
             document.body.classList.remove('fading');
             document.body.classList.add('god-state');
-            // V6: keep red palette ALL the way until BSOD (133.5s = +7.79s after triggerGodChallenge at 125.708)
-            // before V6 the fade started at +5.2s, leaving ILLEGAL ARGUMENTS only briefly red.
-            setTimeout(() => {
-                container.classList.add('fading');
-                document.body.classList.add('fading');
-            }, 7700);
+            // V6.1.4: red palette persists ALL the way to BSOD takeover with no
+            // pre-fade. triggerGodChallenge fires at 125.330s timeline-time
+            // (+ LYRIC_OFFSET on dispatch), BSOD fires at 133.200s. Gap = 7870ms.
+            // Removing god-state happens AT BSOD (showBSOD adds bsod-active which
+            // overrides the red), so we keep it red right up to that moment.
             setTimeout(() => {
                 container.classList.remove('god-challenge', 'fading');
                 document.body.classList.remove('god-state', 'fading');
@@ -8365,8 +8383,8 @@ PRIVS: NONE`;
                 flash.className = 'hk-code-flash';
                 const life = (Math.random() * 350 + 280) / 1000; // 0.28-0.63s
                 flash.style.setProperty('--life', `${life}s`);
-                const x = 18 + Math.random() * 64;
-                const y = 18 + Math.random() * 60;
+                const x = 30 + Math.random() * 40;
+                const y = 22 + Math.random() * 56;
                 flash.style.left = `${x}%`;
                 flash.style.top = `${y}%`;
                 flash.style.fontSize = `${0.85 + Math.random() * 0.75}em`;
@@ -8413,7 +8431,8 @@ PRIVS: NONE`;
         ];
         let _heroExecIdx = 0;
         function flashExecutionCode() {
-            const preset = HK_EXEC_HERO_PRESETS[_heroExecIdx++ % HK_EXEC_HERO_PRESETS.length];
+            const idx = _heroExecIdx++;
+            const preset = HK_EXEC_HERO_PRESETS[idx % HK_EXEC_HERO_PRESETS.length];
             const hero = document.createElement('div');
             hero.className = 'hk-exec-hero';
             hero.innerHTML = `
@@ -8426,17 +8445,18 @@ PRIVS: NONE`;
             `;
             container.appendChild(hero);
             _execCount++;
-            // V6.1.1: third flashExecutionCode has only 0.61s before next typeLine
-            // (172.50 → 173.11). 700ms display + 220ms fade = 920ms was overflowing
-            // and visibly leaking onto "Though we are trapped". Compressed to
-            // 380ms display + 160ms fade = 540ms — fits the smallest window with
-            // a 70ms safety margin.
+            // V6.1.4: per-call timing — calls 1 & 2 have ~3.8s+3.8s windows so
+            // they get a longer (~1.0s) reading time. Call 3 has only 0.61s
+            // before "Though we are trapped" so it stays compressed (540ms).
+            const isShort = (idx % HK_EXEC_HERO_PRESETS.length) === 2;
+            const showMs = isShort ? 380 : 880;
+            const fadeMs = isShort ? 160 : 220;
             setTimeout(() => {
-                hero.style.transition = 'opacity 0.16s ease-out, filter 0.16s';
+                hero.style.transition = `opacity ${(fadeMs/1000).toFixed(2)}s ease-out, filter ${(fadeMs/1000).toFixed(2)}s`;
                 hero.style.opacity = '0';
                 hero.style.filter = 'blur(4px)';
-                setTimeout(() => hero.remove(), 180);
-            }, 380);
+                setTimeout(() => hero.remove(), fadeMs + 20);
+            }, showMs);
         }
 
         // ==== V5: persistent ambient (matrix rain bg + 4 corner HUDs) ====

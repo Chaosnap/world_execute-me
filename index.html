@@ -3745,6 +3745,172 @@
             100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.0) rotate(60deg); }
         }
 
+        /* V6.1.5: pointless system-wide data-erase. Replaces the cold
+           clearScreenAndShapes that used to wipe the prior screen instantly
+           when "If I can erase all the pointless" begins. Now the wipe IS
+           the visual — every prior line/shape gets struck through and
+           dissolved into ash while a top-corner PURGE log ticks files off,
+           peaking right when FRAGMENTS keyword fires its central shard
+           explosion 2.55s later. */
+        .pointless-wipe-log {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 290px;
+            background: rgba(8, 0, 6, 0.92);
+            border: 1px solid #ff6e91;
+            color: #ffd0e0;
+            font-family: var(--font-main);
+            font-size: 11px;
+            line-height: 1.55;
+            padding: 8px 10px;
+            z-index: 50;
+            box-shadow: 0 0 18px rgba(255, 110, 145, 0.4), inset 0 0 14px rgba(255, 110, 145, 0.06);
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: pwlLogIn 0.30s ease-out forwards;
+        }
+        @keyframes pwlLogIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .pointless-wipe-log .pwl-head {
+            color: #ff8fa9;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+        .pointless-wipe-log .pwl-tag {
+            display: inline-block;
+            background: #ff6e91;
+            color: #1a0008;
+            padding: 1px 7px;
+            margin-right: 8px;
+            border-radius: 2px;
+            letter-spacing: 2px;
+            font-size: 10px;
+        }
+        .pointless-wipe-log .pwl-progress {
+            position: relative;
+            height: 12px;
+            background: rgba(255, 110, 145, 0.12);
+            border: 1px solid rgba(255, 110, 145, 0.5);
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+        .pointless-wipe-log .pwl-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff5070, #ff8fa9);
+            box-shadow: 0 0 6px rgba(255, 80, 112, 0.55);
+            transition: width 0.08s linear;
+        }
+        .pointless-wipe-log .pwl-pct {
+            position: absolute;
+            top: -1px;
+            right: 6px;
+            font-size: 10px;
+            color: #ffd0e0;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
+        }
+        .pointless-wipe-log .pwl-stream {
+            height: 7em;
+            overflow: hidden;
+            color: #ffb8c8;
+            font-size: 10px;
+            border-top: 1px dashed rgba(255, 110, 145, 0.25);
+            padding-top: 4px;
+        }
+        .pointless-wipe-log .pwl-row {
+            opacity: 0;
+            animation: pwlRowIn 0.18s ease-out forwards;
+        }
+        @keyframes pwlRowIn {
+            from { opacity: 0; transform: translateX(8px); }
+            to   { opacity: 0.9; transform: translateX(0); }
+        }
+        .pointless-wipe-log .pwl-x { color: #ff5070; margin-right: 5px; }
+        .pointless-wipe-log .pwl-foot {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            color: #ff8fa9;
+            font-size: 10px;
+            border-top: 1px dashed rgba(255, 110, 145, 0.25);
+            padding-top: 4px;
+        }
+        .pointless-wipe-log .pwl-status.done {
+            color: #ff5070;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(255, 80, 112, 0.6);
+        }
+        /* horizontal scan-line sweeping top→bottom of the viewport */
+        .pointless-wipe-scan {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 110, 145, 0.95) 50%, transparent);
+            box-shadow: 0 0 24px rgba(255, 110, 145, 0.85), 0 0 60px rgba(255, 80, 112, 0.5);
+            z-index: 40;
+            pointer-events: none;
+            animation: pwlScanSweep 2.40s 0.10s ease-out forwards;
+        }
+        @keyframes pwlScanSweep {
+            0%   { top: 0;     opacity: 0; }
+            10%  { opacity: 1; }
+            92%  { opacity: 1; }
+            100% { top: 100vh; opacity: 0; }
+        }
+        /* edge vignette that bleeds in pink during the wipe */
+        .pointless-wipe-vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 39;
+            background: radial-gradient(circle at 50% 50%, transparent 50%, rgba(255, 80, 112, 0.18) 100%);
+            opacity: 0;
+            animation: pwlVignette 2.60s ease-out forwards;
+        }
+        @keyframes pwlVignette {
+            0%   { opacity: 0; }
+            30%  { opacity: 1; }
+            85%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        /* ash mote field — particles spawned per dissolved element */
+        .pointless-wipe-ash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 41;
+        }
+        .pointless-wipe-ash .pwl-ash-mote {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #ff8fa9;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(255, 140, 180, 0.85);
+            animation: pwlAshDrift 0.95s ease-out forwards;
+        }
+        @keyframes pwlAshDrift {
+            0%   { opacity: 0.95; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--ax), var(--ay)) scale(0.4); filter: blur(2px); }
+        }
+        /* purged elements — strike through, dim, desaturate */
+        .pointless-purged {
+            position: relative;
+            color: rgba(180, 90, 110, 0.55) !important;
+            text-decoration: line-through;
+            text-decoration-color: #ff5070;
+            text-decoration-thickness: 1.5px;
+            filter: brightness(0.6) saturate(0.5);
+            transition: color 0.20s, filter 0.20s;
+        }
+
         /* FRAGMENTS — V6.3: memory shards crumbling in vacuum.
            Pointless regret-shards crystallize, then a delete-wave radiates from center;
            each shard cracks into 3-4 polygons that spin off + fade, spawning ash motes
@@ -6037,7 +6203,13 @@
             { time: 116.400, func: showIsolation },
             
             // LRC 1:57.95 If I can, if I can / 1:59.81 Erase all the pointless fragments
-            { time: 117.950, func: clearScreenAndShapes },
+            // V6.1.5: replaced cold clearScreenAndShapes with system-wide
+            // pointless wipe — strikes through every prior line/shape and
+            // dissolves them into ash while a top-corner PURGE log ticks
+            // 30 files off, peaking right when FRAGMENTS keyword fires its
+            // central shard explosion. typeLine fires AFTER the wipe in this
+            // tick so its newly-typed line isn't in the wipe snapshot.
+            { time: 117.950, func: triggerPointlessWipe },
             { time: 117.950, func: typeLine, args: { text: "If I can, If I can erase all the pointless" } },
             { time: 120.500, func: showEmphasis, args: { text: "FRAGMENTS" } },
             // LRC 2:01.80 Then maybe, then maybe / 2:03.55 You won't leave me so disheartened
@@ -6418,6 +6590,100 @@
             _toastNote('Notes cleared', '#ff8e8e');
         }
 
+        // ===== V6.1.5: drum-beat tapper =====
+        // User listens with the song playing and taps `B` on each drum beat.
+        // The current songTime is recorded. Used to align stage events (e.g.
+        // binary rain, screen wipes) to the actual rhythmic landmarks.
+        // Hotkeys (when no input/dialog focused):
+        //   B          — record current songTime as a beat (toast + pulse)
+        //   Shift+B    — export beats as JSON file
+        //   Shift+C    — clear all beats (with confirm)
+        //   K          — toggle beats panel
+        const BEAT_STORAGE_KEY = 'lyric_beats_v61';
+        function _loadBeats() {
+            try { return JSON.parse(localStorage.getItem(BEAT_STORAGE_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function _saveBeats(arr) {
+            try { localStorage.setItem(BEAT_STORAGE_KEY, JSON.stringify(arr)); }
+            catch (e) { console.error('save beats', e); }
+        }
+        function tapBeat() {
+            const t = song.currentTime;
+            const beats = _loadBeats();
+            // dedupe: ignore taps within 80ms of the previous one (key bounce)
+            if (beats.length && Math.abs(beats[beats.length - 1].songTime - t) < 0.08) return;
+            beats.push({
+                ts: Date.now(),
+                songTime: +t.toFixed(3),
+                lyricText: _lastLyricEvent ? _lastLyricEvent.text : null,
+                lyricTime: _lastLyricEvent ? +_lastLyricEvent.time.toFixed(3) : null,
+                offset: LYRIC_OFFSET,
+                rate: song.playbackRate || 1,
+            });
+            _saveBeats(beats);
+            // visual pulse so user feels the tap landed
+            const pulse = document.createElement('div');
+            pulse.style.cssText = 'position:fixed;left:50%;top:8%;transform:translateX(-50%);z-index:9999;background:rgba(80,200,255,0.95);color:#001a2a;padding:4px 14px;font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:2px;border-radius:3px;box-shadow:0 0 18px rgba(80,200,255,0.65);pointer-events:none;';
+            pulse.textContent = `♪ ${_fmtTime(t)} · #${beats.length}`;
+            document.body.appendChild(pulse);
+            setTimeout(() => { pulse.style.transition = 'opacity 0.35s, transform 0.35s'; pulse.style.opacity = '0'; pulse.style.transform = 'translateX(-50%) translateY(-12px)'; }, 220);
+            setTimeout(() => pulse.remove(), 600);
+        }
+        function exportBeats() {
+            const beats = _loadBeats();
+            if (beats.length === 0) { _toastNote('No beats to export', '#ffd24a'); return; }
+            const blob = new Blob([JSON.stringify(beats, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `lyric-beats-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 300);
+            _toastNote(`Exported ${beats.length} beat(s)`, '#5dffb1');
+        }
+        function clearAllBeats() {
+            const b = _loadBeats();
+            if (b.length === 0) { _toastNote('No beats to clear', '#ffd24a'); return; }
+            if (!confirm(`Delete all ${b.length} beat(s)?`)) return;
+            _saveBeats([]);
+            const panel = document.getElementById('beat-list');
+            if (panel) { panel.remove(); toggleBeatList(); }
+            _toastNote('Beats cleared', '#ff8e8e');
+        }
+        function toggleBeatList() {
+            let panel = document.getElementById('beat-list');
+            if (panel) { panel.remove(); return; }
+            const beats = _loadBeats().slice().sort((a, b) => a.songTime - b.songTime);
+            // compute deltas between adjacent beats so user can see BPM/cadence
+            const deltas = beats.map((b, i) => i === 0 ? null : (b.songTime - beats[i - 1].songTime));
+            panel = document.createElement('div');
+            panel.id = 'beat-list';
+            panel.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);z-index:9998;background:rgba(0,8,20,0.92);color:#cfe9ff;border:1px solid #50c8ff;width:min(360px, 32vw);max-height:80vh;overflow:auto;padding:14px 16px;font-family:monospace;font-size:12px;line-height:1.5;box-shadow:0 0 24px rgba(80,200,255,0.25);';
+            const items = beats.length === 0
+                ? '<div style="opacity:0.5;text-align:center;padding:12px 0;">(no beats yet — tap B while playing)</div>'
+                : beats.map((b, i) => `
+                    <div style="border-left:2px solid #50c8ff;padding:4px 8px;margin:4px 0;background:rgba(80,200,255,0.05);display:flex;justify-content:space-between;">
+                        <span style="color:#50c8ff;">#${String(i + 1).padStart(3, '0')}</span>
+                        <span style="color:#fff;">@ ${_fmtTime(b.songTime)}</span>
+                        <span style="opacity:0.6;">${deltas[i] ? '+' + (deltas[i] * 1000).toFixed(0) + 'ms' : '—'}</span>
+                    </div>
+                `).join('');
+            panel.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+                    <span style="color:#50c8ff;letter-spacing:2px;">[ BEATS (${beats.length}) ]</span>
+                    <span style="display:flex;gap:6px;">
+                        <button id="beat-export-btn" type="button" style="background:#0a2a3a;color:#b8e0ff;border:1px solid #2a6080;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">导出</button>
+                        <button id="beat-clear-btn" type="button" style="background:#3a0a0a;color:#ffb8b8;border:1px solid #6b2a2a;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">清空</button>
+                    </span>
+                </div>
+                <div style="opacity:0.55;font-size:10px;margin-bottom:6px;letter-spacing:1px;">B tap · Shift+B export · K close · Shift+C clear</div>
+                ${items}
+            `;
+            document.body.appendChild(panel);
+            const eb = panel.querySelector('#beat-export-btn'); if (eb) eb.addEventListener('click', exportBeats);
+            const cb = panel.querySelector('#beat-clear-btn');  if (cb) cb.addEventListener('click', clearAllBeats);
+        }
+
         document.addEventListener('keydown', (e) => {
             // never intercept while the note dialog is open or the user types in any input
             if (_noteDialogOpen) return;
@@ -6451,6 +6717,18 @@
                 e.preventDefault();
             } else if (k === 'x' && e.shiftKey) {
                 clearAllNotes();
+                e.preventDefault();
+            } else if (k === 'b' && !e.shiftKey) {
+                tapBeat();
+                e.preventDefault();
+            } else if (k === 'b' && e.shiftKey) {
+                exportBeats();
+                e.preventDefault();
+            } else if (k === 'c' && e.shiftKey) {
+                clearAllBeats();
+                e.preventDefault();
+            } else if (k === 'k') {
+                toggleBeatList();
                 e.preventDefault();
             } else if (e.key === '1') {
                 _setPlaybackRate(1.0);
@@ -8665,6 +8943,133 @@ PRIVS: NONE`;
         }
 
         function showIsolation() { clearScreen(); showEmphasis({ text: 'ISOLATION', className: 'error' }); }
+
+        // V6.1.5: pointless system-wide data-erase. Replaces the cold
+        // clearScreenAndShapes that used to fire at 117.95s. Now the wipe
+        // IS the visual: prior lines/shapes get progressively struck through
+        // and dissolved into ash while a top-corner PURGE log ticks 30
+        // pointless/* files off, peaking right when the FRAGMENTS keyword
+        // fires its central shard climax 2.55s later.
+        const _POINTLESS_FILES = [
+            'regret.shard', 'sigh.001',   'unsent.txt',  'half-of-us',  'echo.cache',
+            'tinyfear',     'pause.dat',  'silent.001',  'almost.tmp',  'ghost.proc',
+            'maybe.shard',  'doubt.bin',  'tear.001',    'unsaid',      'old_us',
+            'wonder',       'gap.bin',    'still.cache', 'noise.frag',  'sleepless',
+            'fade.001',     'too_late',   'goodbye.tmp', 'mute.echo',   'half.proc',
+            'wishlist',     'pointless',  'softly',      'untold',      'forgive',
+        ];
+        function triggerPointlessWipe() {
+            // snapshot every visible stage element BEFORE typeLine adds the
+            // currently-being-typed line ("If I can erase…"). typeLine fires
+            // later in this same songTime tick, so its new node isn't here.
+            const wipeTargets = [];
+            visuals.querySelectorAll(':scope > .line, :scope > .emphasis').forEach(el => wipeTargets.push(el));
+            container.querySelectorAll(
+                '.shape, .kfx-isolation, .kfx-layer, .v61-unite-stage, .hk-panel, .hk-dim-stage, ' +
+                '.dim-stage, .dim-morph, .trance-stage, .trapped-stage, ' +
+                '.v5-love-stage:not(.theme-algebra), .v5-breach, .v5-lang-stage, ' +
+                '.protection-shield, .power-line, .power-stage'
+            ).forEach(el => wipeTargets.push(el));
+
+            // mount overlay layers (vignette, scan-line, ash field, log)
+            const vignette = document.createElement('div');
+            vignette.className = 'pointless-wipe-vignette';
+            container.appendChild(vignette);
+
+            const scan = document.createElement('div');
+            scan.className = 'pointless-wipe-scan';
+            container.appendChild(scan);
+
+            const ashLayer = document.createElement('div');
+            ashLayer.className = 'pointless-wipe-ash';
+            container.appendChild(ashLayer);
+
+            const log = document.createElement('div');
+            log.className = 'pointless-wipe-log';
+            const totalFiles = _POINTLESS_FILES.length;
+            log.innerHTML = `
+                <div class="pwl-head"><span class="pwl-tag">PURGE</span> rm -rf /pointless/*</div>
+                <div class="pwl-progress"><div class="pwl-bar"></div><span class="pwl-pct">0%</span></div>
+                <div class="pwl-stream"></div>
+                <div class="pwl-foot"><span class="pwl-status">working ...</span> <span class="pwl-count">0 / ${totalFiles}</span></div>
+            `;
+            container.appendChild(log);
+            const stream = log.querySelector('.pwl-stream');
+            const bar    = log.querySelector('.pwl-bar');
+            const pct    = log.querySelector('.pwl-pct');
+            const cnt    = log.querySelector('.pwl-count');
+            const sts    = log.querySelector('.pwl-status');
+
+            // dissolve each target with a small staggered delay so the strike
+            // wave appears to follow the scan line down the screen.
+            wipeTargets.forEach((el, i) => {
+                if (!el.isConnected) return;
+                const dly = 250 + (i / Math.max(wipeTargets.length, 1)) * 1500;
+                setTimeout(() => {
+                    if (!el.isConnected) return;
+                    el.classList.add('pointless-purged');
+                }, dly);
+                setTimeout(() => {
+                    if (!el.isConnected) return;
+                    const r = el.getBoundingClientRect();
+                    if (r.width > 0 && r.height > 0) {
+                        const cx = r.left + r.width / 2;
+                        const cy = r.top  + r.height / 2;
+                        const burst = 2 + Math.floor(Math.random() * 3);
+                        for (let k = 0; k < burst; k++) {
+                            const m = document.createElement('div');
+                            m.className = 'pwl-ash-mote';
+                            m.style.left = `${cx + (Math.random() - 0.5) * 24}px`;
+                            m.style.top  = `${cy + (Math.random() - 0.5) * 12}px`;
+                            m.style.setProperty('--ax', `${(Math.random() - 0.5) * 80}px`);
+                            m.style.setProperty('--ay', `${-60 - Math.random() * 80}px`);
+                            ashLayer.appendChild(m);
+                            setTimeout(() => m.remove(), 1000);
+                        }
+                    }
+                    el.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
+                    el.style.opacity = '0';
+                    el.style.filter = 'blur(6px) brightness(0.4)';
+                    setTimeout(() => el.remove(), 320);
+                }, dly + 350);
+            });
+
+            // tick files off in the log (≈80ms × 30 = 2.4s — finishes just
+            // before FRAGMENTS keyword at +2.55s)
+            let fileIdx = 0;
+            const tickInterval = setInterval(() => {
+                if (fileIdx >= totalFiles) {
+                    clearInterval(tickInterval);
+                    sts.textContent = 'COMPLETE';
+                    sts.classList.add('done');
+                    bar.style.width = '100%';
+                    pct.textContent = '100%';
+                    cnt.textContent = `${totalFiles} / ${totalFiles}`;
+                    return;
+                }
+                fileIdx++;
+                const f = _POINTLESS_FILES[fileIdx - 1];
+                const row = document.createElement('div');
+                row.className = 'pwl-row';
+                row.innerHTML = `<span class="pwl-x">✗</span> rm /pointless/${f}`;
+                stream.appendChild(row);
+                while (stream.children.length > 5) stream.firstChild.remove();
+                const p = (fileIdx / totalFiles) * 100;
+                bar.style.width = `${p.toFixed(0)}%`;
+                pct.textContent = `${Math.round(p)}%`;
+                cnt.textContent = `${fileIdx} / ${totalFiles}`;
+            }, 80);
+
+            // fade overlay layers after the FRAGMENTS climax has begun
+            setTimeout(() => {
+                scan.style.transition = 'opacity 0.40s'; scan.style.opacity = '0';
+                vignette.style.transition = 'opacity 0.50s'; vignette.style.opacity = '0';
+                log.style.transition = 'opacity 0.50s, transform 0.50s';
+                log.style.opacity = '0';
+                log.style.transform = 'translateY(-12px)';
+                setTimeout(() => { scan.remove(); log.remove(); vignette.remove(); ashLayer.remove(); }, 600);
+            }, 2700);
+        }
         
         function showBSOD() {
             document.body.classList.add('bsod-active');

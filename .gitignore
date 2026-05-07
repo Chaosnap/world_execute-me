@@ -22,6 +22,9 @@ verify-final-exec/
 *.mp4
 *.zip
 
+# audit/probe artifacts (generated)
+audit-results.csv
+
 # node
 node_modules/
 package-lock.json

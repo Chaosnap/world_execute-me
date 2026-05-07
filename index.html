@@ -675,7 +675,9 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
         }
 
-        /* phase 3: depth rings — concentric, fade in sequence to feel "deeply" */
+        /* phase 3: depth rings — concentric, fade in sequence to feel "deeply".
+           V6.1.4: ring anim shortened 2.2s → 1.6s, ring count reduced to 4 in JS,
+           stagger 0.18s → 0.12s. Total scene now 3.4s vs the 3.76s nextClear. */
         .v61-unite-stage .ust-ring {
             position: absolute;
             top: 50%; left: 50%;
@@ -685,7 +687,7 @@
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
             mix-blend-mode: screen;
-            animation: ust-ring 2.2s cubic-bezier(.2,.6,.3,1) forwards;
+            animation: ust-ring 1.6s cubic-bezier(.2,.6,.3,1) forwards;
         }
         @keyframes ust-ring {
             0%   { transform: translate(-50%, -50%) scale(0.05); opacity: 0; }
@@ -704,8 +706,8 @@
             background:
                 radial-gradient(circle at 50% 50%, rgba(80,20,60,0.0) 0%, rgba(120,40,90,0.45) 38%, rgba(60,10,50,0.85) 70%, rgba(20,4,18,0.95) 100%);
             mix-blend-mode: multiply;
-            animation: ust-well 2.6s ease-out forwards;
-            animation-delay: 1.8s;
+            animation: ust-well 1.6s ease-out forwards;
+            animation-delay: 1.7s;
             filter: blur(2px);
         }
         @keyframes ust-well {
@@ -724,8 +726,8 @@
             color: rgba(255, 200, 220, 0.92);
             text-shadow: 0 0 10px rgba(255,140,180,0.85), 0 0 28px rgba(255,90,150,0.7);
             opacity: 0;
-            animation: ust-deeply 2.5s ease-in-out forwards;
-            animation-delay: 1.7s;
+            animation: ust-deeply 1.7s ease-in-out forwards;
+            animation-delay: 1.6s;
             mix-blend-mode: screen;
         }
         @keyframes ust-deeply {
@@ -7147,12 +7149,13 @@
                 "  → unified at HEAD";
             stage.append(flash, sigil);
 
-            // phase 3 depth rings (5 nested rings staggered)
-            for (let i = 0; i < 5; i++) {
+            // phase 3 depth rings — V6.1.4: 4 (was 5), tighter stagger so the
+            // last ring finishes at ~1.4 + 0.36 + 1.6 = 3.36s (≤ 3.76s nextClear).
+            for (let i = 0; i < 4; i++) {
                 const r = document.createElement('div');
                 r.className = 'ust-ring';
-                r.style.width = r.style.height = `${60 + i * 18}px`;
-                r.style.animationDelay = `${1.55 + i * 0.18}s`;
+                r.style.width = r.style.height = `${60 + i * 22}px`;
+                r.style.animationDelay = `${1.40 + i * 0.12}s`;
                 stage.appendChild(r);
             }
             // depth well + DEEPLY label
@@ -7161,8 +7164,10 @@
             stage.append(well, dpl);
 
             container.appendChild(stage);
-            // total scene length ~3.6s; clean up before the next clearScreen at 58.5+offset.
-            setTimeout(() => stage.remove(), 4200);
+            // V6.1.4: total scene 3.4s (was 4.2s); audit revealed nextClear is
+            // 3.76s, so the original would get truncated 440ms before its end —
+            // visible as an abrupt cut on the depth rings/well/deeply phases.
+            setTimeout(() => stage.remove(), 3500);
         }
 
         // Icon cards replacing emojis (eggplant / tomato / cat / god)

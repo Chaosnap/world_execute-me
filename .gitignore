@@ -1,0 +1,27 @@
+# macOS metadata
+.DS_Store
+
+# Playwright/verification screenshot dumps — generated, not source.
+peek/
+verify-v6/
+verify-v6-1/
+verify-v6-1-lrc/
+verify-v5c/
+verify-unite/
+verify-isolation/
+verify-final-exec/
+
+# Common large binary asset categories. Keep audio in `assets/` if needed by
+# pinning specific filenames in a follow-up commit.
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webm
+*.mov
+*.mp4
+*.zip
+
+# node
+node_modules/
+package-lock.json

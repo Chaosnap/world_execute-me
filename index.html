@@ -6419,7 +6419,7 @@
             el.innerHTML = `
                 <div class="pa-icon"><i></i><i></i></div>
                 <div class="pa-title">PAUSED <span class="rate-badge" style="font-size:0.45em;letter-spacing:2px;color:#ffd166;margin-left:14px;">1.00x</span></div>
-                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>[</kbd><kbd>]</kbd> lyric ±50ms · <kbd>\\</kbd> offset reset · <kbd>N</kbd> note · <kbd>L</kbd> list · <kbd>E</kbd> export · <kbd>B</kbd> tap beat · <kbd>K</kbd> beats · <kbd>1/7/5/3</kbd> speed</div>
+                <div class="pa-hint">press <kbd>P</kbd> to resume · <kbd>[</kbd><kbd>]</kbd> lyric ±50ms · <kbd>\\</kbd> offset reset · <kbd>N</kbd> note · <kbd>L</kbd> list · <kbd>E</kbd> export · <kbd>B</kbd> tap beat · <kbd>K</kbd> beats · <kbd>W</kbd> tap word · <kbd>;</kbd> words · <kbd>1/7/5/3</kbd> speed</div>
             `;
             document.body.appendChild(el);
             return el;
@@ -6659,6 +6659,164 @@
             if (panel) { panel.remove(); toggleBeatList(); }
             _toastNote('Beats cleared', '#ff8e8e');
         }
+        // ===== V6.1.5: per-word tapper =====
+        // Same model as beats, but records (songTime, lyricText, wordIndex)
+        // grouped by lyric line so we can build word-level reveal timelines.
+        // User listens, presses W at the start of each spoken word; index
+        // auto-increments within the current lyric, resets when the lyric
+        // event changes. Workflow:
+        //   W           — tap a word (toast + index); each new lyric line resets sequence
+        //   ;           — toggle words panel (left, grouped by lyric)
+        //   Shift+W     — export words JSON: includes `events` for world-execute-words.json
+        //   Shift+V     — clear all words
+        // Storage: localStorage['lyric_words_v61'] — array of
+        //   { ts, songTime, lyricText, lyricTime, wordIndex, offset, rate }
+        const WORDS_STORAGE_KEY = 'lyric_words_v61';
+        let _wordTapState = { lyricKey: null, count: 0 };
+        function _loadWords() {
+            try { return JSON.parse(localStorage.getItem(WORDS_STORAGE_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function _saveWords(arr) {
+            try { localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(arr)); }
+            catch (e) { console.error('save words', e); }
+        }
+        function tapWord() {
+            if (!_lastLyricEvent) { _toastNote('No lyric to tag yet', '#ffd24a'); return; }
+            const t = song.currentTime;
+            // key the line by its dispatched time so successive lines reset count
+            const key = `${_lastLyricEvent.time.toFixed(3)}|${_lastLyricEvent.text}`;
+            if (_wordTapState.lyricKey !== key) {
+                _wordTapState = { lyricKey: key, count: 0 };
+            }
+            _wordTapState.count++;
+            const idx = _wordTapState.count - 1; // 0-based word index within line
+            const words = _loadWords();
+            words.push({
+                ts: Date.now(),
+                songTime: +t.toFixed(3),
+                lyricText: _lastLyricEvent.text,
+                lyricTime: +_lastLyricEvent.time.toFixed(3),
+                wordIndex: idx,
+                offset: LYRIC_OFFSET,
+                rate: song.playbackRate || 1,
+            });
+            _saveWords(words);
+            // word preview: figure out which word in the lyric we're on
+            const lyricWords = (_lastLyricEvent.text || '').split(/\s+/).filter(Boolean);
+            const previewWord = lyricWords[idx] || `#${idx + 1}`;
+            const pulse = document.createElement('div');
+            pulse.style.cssText = 'position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:9999;background:rgba(255,200,80,0.95);color:#3a2700;padding:4px 14px;font-family:monospace;font-size:16px;font-weight:bold;letter-spacing:2px;border-radius:3px;box-shadow:0 0 14px rgba(255,200,80,0.65);pointer-events:none;';
+            pulse.textContent = `▸ "${previewWord}" @ ${_fmtTime(t)}`;
+            document.body.appendChild(pulse);
+            setTimeout(() => { pulse.style.transition = 'opacity 0.35s, transform 0.35s'; pulse.style.opacity = '0'; pulse.style.transform = 'translateX(-50%) translateY(-12px)'; }, 280);
+            setTimeout(() => pulse.remove(), 700);
+        }
+        function exportWords() {
+            const words = _loadWords();
+            if (words.length === 0) { _toastNote('No words to export', '#ffd24a'); return; }
+            // Also build a per-line summary for direct copy/paste into timeline
+            const grouped = {};
+            for (const w of words) {
+                const k = `${w.lyricTime}|${w.lyricText}`;
+                if (!grouped[k]) grouped[k] = { lyricTime: w.lyricTime, lyricText: w.lyricText, taps: [] };
+                grouped[k].taps.push({ wordIndex: w.wordIndex, songTime: w.songTime });
+            }
+            const summary = Object.values(grouped).map(g => {
+                // word offsets relative to first tap
+                const t0 = g.taps[0] ? g.taps[0].songTime : 0;
+                const lyricWords = (g.lyricText || '').split(/\s+/).filter(Boolean);
+                return {
+                    lyricTime: g.lyricTime,
+                    lyricText: g.lyricText,
+                    firstTapSongTime: +t0.toFixed(3),
+                    words: g.taps.map(t => ({
+                        word: lyricWords[t.wordIndex] || `#${t.wordIndex + 1}`,
+                        absSongTime: t.songTime,
+                        relMs: Math.round((t.songTime - t0) * 1000),
+                    })),
+                };
+            });
+            const sortedRaw = words.slice().sort((a, b) => a.songTime - b.songTime);
+            const lane = [];
+            let prevLineKey = null;
+            for (const w of sortedRaw) {
+                const lineKey = `${w.lyricTime}|${w.lyricText}`;
+                if (prevLineKey !== null && lineKey !== prevLineKey) {
+                    lane.push({ clear: true });
+                }
+                prevLineKey = lineKey;
+                const lyricWords = (w.lyricText || '').split(/\s+/).filter(Boolean);
+                const wordStr = lyricWords[w.wordIndex] || '';
+                const off = typeof w.offset === 'number' ? w.offset : LYRIC_OFFSET;
+                lane.push({ t: +(w.songTime - off).toFixed(4), word: wordStr });
+            }
+            const blob = new Blob([JSON.stringify({ raw: words, perLine: summary, events: lane }, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `lyric-words-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 300);
+            _toastNote(`Exported ${words.length} taps — use root "events" as word lane`, '#5dffb1');
+        }
+        function clearAllWords() {
+            const w = _loadWords();
+            if (w.length === 0) { _toastNote('No words to clear', '#ffd24a'); return; }
+            if (!confirm(`Delete all ${w.length} word(s)?`)) return;
+            _saveWords([]);
+            _wordTapState = { lyricKey: null, count: 0 };
+            const panel = document.getElementById('word-list');
+            if (panel) { panel.remove(); toggleWordList(); }
+            _toastNote('Words cleared', '#ff8e8e');
+        }
+        function toggleWordList() {
+            let panel = document.getElementById('word-list');
+            if (panel) { panel.remove(); return; }
+            const words = _loadWords();
+            const grouped = {};
+            for (const w of words) {
+                const k = `${w.lyricTime}|${w.lyricText}`;
+                if (!grouped[k]) grouped[k] = { lyricTime: w.lyricTime, lyricText: w.lyricText, taps: [] };
+                grouped[k].taps.push(w);
+            }
+            const groups = Object.values(grouped).sort((a, b) => a.lyricTime - b.lyricTime);
+            panel = document.createElement('div');
+            panel.id = 'word-list';
+            panel.style.cssText = 'position:fixed;top:50%;left:20px;transform:translateY(-50%);z-index:9998;background:rgba(20,12,0,0.94);color:#fff0c8;border:1px solid #ffc850;width:min(420px, 36vw);max-height:80vh;overflow:auto;padding:14px 16px;font-family:monospace;font-size:11px;line-height:1.5;box-shadow:0 0 24px rgba(255,200,80,0.25);';
+            const items = groups.length === 0
+                ? '<div style="opacity:0.5;text-align:center;padding:12px 0;">(no words yet — press W during a lyric)</div>'
+                : groups.map(g => {
+                    const lyricWords = (g.lyricText || '').split(/\s+/).filter(Boolean);
+                    const t0 = g.taps[0] ? g.taps[0].songTime : 0;
+                    const tapHTML = g.taps.map(t => {
+                        const w = lyricWords[t.wordIndex] || `#${t.wordIndex + 1}`;
+                        const rel = ((t.songTime - t0) * 1000).toFixed(0);
+                        return `<span style="display:inline-block;margin:1px 6px 1px 0;padding:1px 6px;background:rgba(255,200,80,0.12);border:1px solid rgba(255,200,80,0.35);"><span style="color:#ffe8a0;">${w.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</span> <span style="opacity:0.65;font-size:10px;">+${rel}ms</span></span>`;
+                    }).join('');
+                    return `
+                        <div style="border-left:2px solid #ffc850;padding:5px 8px;margin:6px 0;background:rgba(255,200,80,0.05);">
+                            <div style="color:#ffc850;font-size:10px;letter-spacing:1px;">@ ${_fmtTime(g.lyricTime)} · ${g.taps.length}/${lyricWords.length} words</div>
+                            <div style="color:#fff;opacity:0.85;font-size:11px;margin:2px 0 4px 0;">${g.lyricText.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+                            <div>${tapHTML}</div>
+                        </div>
+                    `;
+                }).join('');
+            panel.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+                    <span style="color:#ffc850;letter-spacing:2px;">[ WORDS (${words.length}) ]</span>
+                    <span style="display:flex;gap:6px;">
+                        <button id="word-export-btn" type="button" style="background:#3a2a0a;color:#ffe8a0;border:1px solid #806020;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">导出</button>
+                        <button id="word-clear-btn" type="button" style="background:#3a0a0a;color:#ffb8b8;border:1px solid #6b2a2a;padding:3px 10px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;">清空</button>
+                    </span>
+                </div>
+                <div style="opacity:0.55;font-size:10px;margin-bottom:6px;letter-spacing:1px;">W tap word · ; close · Shift+W export · Shift+V clear</div>
+                ${items}
+            `;
+            document.body.appendChild(panel);
+            const eb = panel.querySelector('#word-export-btn'); if (eb) eb.addEventListener('click', exportWords);
+            const cb = panel.querySelector('#word-clear-btn');  if (cb) cb.addEventListener('click', clearAllWords);
+        }
+
         function toggleBeatList() {
             let panel = document.getElementById('beat-list');
             if (panel) { panel.remove(); return; }
@@ -6739,6 +6897,18 @@
             } else if (k === 'k') {
                 toggleBeatList();
                 e.preventDefault();
+            } else if (k === 'w' && !e.shiftKey) {
+                tapWord();
+                e.preventDefault();
+            } else if (k === 'w' && e.shiftKey) {
+                exportWords();
+                e.preventDefault();
+            } else if (k === 'v' && e.shiftKey) {
+                clearAllWords();
+                e.preventDefault();
+            } else if (e.key === ';') {
+                toggleWordList();
+                e.preventDefault();
             } else if (e.key === '1') {
                 _setPlaybackRate(1.0);
                 e.preventDefault();
@@ -6818,6 +6988,65 @@
                 handle.paused = false;
             };
             _registerTyping(handle);
+        }
+
+        // ==== V6.1.5: typeLineWords — word-level reveal driven by song.currentTime ====
+        // Replaces fixed-interval character typing with explicit per-word cues so
+        // each word lands EXACTLY when sung. Drives reveals from song.currentTime
+        // (not setInterval), so pause / scrub / playback-rate just work.
+        //
+        // Args:
+        //   words      — array of { w: "If", t: 1.234 } where t is ABSOLUTE
+        //                songTime in seconds (NOT relative). Use the
+        //                lyric-words export's `absSongTime` field directly.
+        //   className  — extra class on the line
+        //   onComplete — fires the moment the line is mounted (matches typeLine
+        //                semantics: visual hooks ride the lyric range, not the
+        //                end of typing)
+        //
+        // Notes:
+        //   - Spaces inserted automatically between words.
+        //   - If a word's absolute time has already passed when the function
+        //     fires, that word appears immediately (handles late dispatch /
+        //     scrubbing).
+        //   - Cursor removed shortly after the last word reveals.
+        function typeLineWords({ words, className = '', style = {}, onComplete = null }) {
+            const line = document.createElement('div');
+            line.className = `line words-mode ${className}`;
+            Object.assign(line.style, style);
+            line.innerHTML = `<span class="prompt">C:\\&gt; </span><span class="text"></span><span class="cursor"></span>`;
+            visuals.appendChild(line);
+            _lyricLineCount++;
+            if (onComplete) { try { onComplete(); } catch (e) { console.error(e); } }
+
+            const textSpan = line.querySelector('.text');
+            const cursor = line.querySelector('.cursor');
+            const sortedWords = (words || []).slice().sort((a, b) => a.t - b.t);
+            let revealedCount = 0;
+            let rafId = null;
+            const stop = () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } };
+
+            const tick = () => {
+                if (!line.isConnected) { stop(); return; }
+                const ct = song.currentTime;
+                while (revealedCount < sortedWords.length && ct >= sortedWords[revealedCount].t) {
+                    const wd = sortedWords[revealedCount];
+                    if (textSpan.textContent && !/[\s\-]$/.test(textSpan.textContent)) textSpan.textContent += ' ';
+                    textSpan.textContent += wd.w;
+                    visuals.scrollTop = visuals.scrollHeight;
+                    revealedCount++;
+                }
+                if (revealedCount >= sortedWords.length) {
+                    if (cursor.parentNode) {
+                        // small post-roll then drop the cursor
+                        setTimeout(() => { if (cursor.parentNode) cursor.remove(); }, 220);
+                    }
+                    stop();
+                    return;
+                }
+                rafId = requestAnimationFrame(tick);
+            };
+            rafId = requestAnimationFrame(tick);
         }
 
         // ==== V5: typeLineDecay — progressively corrupted lyric ====
@@ -8833,19 +9062,18 @@ PRIVS: NONE`;
             `;
             parent.appendChild(inject);
 
-            // V6.1.3: schedule tangent visualization to fade out after 1.0s so
-            // the next lyric ("If I approach infinity") arrives on a clean canvas.
-            // Without this, the tangent SVG and inject panel persist until the
-            // AC/DC scene wipe — bleeding into infinity / limitations.
+            // V6.1.7: keep tangent sweep on screen long enough — the timeline places
+            // drawLimitations only ~260ms after TANGENTS (+LYRIC_OFFSET), so tearing
+            // down here used to disposeSineScene() instantly and freeze mid-animation.
             setTimeout(() => {
                 [svg, labelLayer, inject].forEach(el => {
                     if (!el || !el.isConnected) return;
-                    el.style.transition = 'opacity 0.35s ease-out, filter 0.35s';
+                    el.style.transition = 'opacity 0.45s ease-out, filter 0.45s';
                     el.style.opacity = '0';
                     el.style.filter = 'blur(2px)';
-                    setTimeout(() => el.remove(), 380);
+                    setTimeout(() => el.remove(), 480);
                 });
-            }, 1000);
+            }, 1450);
         }
 
         // patch sine phase tick to also keep the reticle ring on the wave
@@ -8893,19 +9121,11 @@ PRIVS: NONE`;
             sinePhaseRAF = requestAnimationFrame(tick);
         };
         function drawLimitations() {
-             // V6.1.5: dispose any lingering sine + tangent visuals first so
-             // "If I approach infinity" lands on a clean stage. Previously the
-             // sine SVG (life 6.5s from 36.77s) was still up at 39.96s and
-             // collided with the limit horizon and approaching-infinity beat.
-             try { if (typeof disposeSineScene === 'function') disposeSineScene(); } catch (e) {}
-             document.querySelectorAll('.sine-svg, .sine-formula, .tangent-svg').forEach(el => {
-                 el.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
-                 el.style.opacity = '0';
-                 el.style.filter = 'blur(4px)';
-                 setTimeout(() => el.remove(), 320);
-             });
-             // V6.1: redrew as soft pink "horizon" hints rather than harsh red bars,
-             // pairing with the poetic limit curve in fxLimitations
+             // Horizon lines immediately (pairs with poetic LIMITATIONS kfx later).
+             // IMPORTANT: do NOT disposeSineScene / strip sine paths here — TANGENTS
+             // beats land ~0.26s earlier on the timeline clock (+offset) and need
+             // ~1.4s of live RAF. Tear down the full OSC shell slightly after tangent
+             // overlays naturally begin their own fade (see drawTangents).
              for(let i = 0; i < 2; i++) {
                 const limit = document.createElement('div');
                 limit.className = 'shape limit-line poetic';
@@ -8921,13 +9141,16 @@ PRIVS: NONE`;
                 container.appendChild(limit);
                 setTimeout(() => { limit.style.opacity = '1'; }, 60);
              }
-             // belt-and-braces auto-cleanup if anything escapes the kfx-layer cleanup
              setTimeout(() => {
                 document.querySelectorAll('.shape.limit-line').forEach(line => {
                     line.style.opacity = '0';
                     setTimeout(() => line.remove(), 1000);
                 });
              }, 6500);
+
+             setTimeout(() => {
+                try { fadeSineScene(); } catch (e) {}
+             }, 1520);
         }
         
         function rippleEffect() {

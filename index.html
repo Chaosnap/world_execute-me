@@ -6013,6 +6013,13 @@
         <div id="visuals"></div>
     </div>
 
+    <!-- V6.1.5: 逐词时间表 — 由 assets/world-execute-me.enhanced.lrc 经 parse-enhanced-lrc.cjs
+         生成，定义 window.__SYNC_BY_BRACKET：以 timeline 的 LRC bracket 时间为 key，
+         值为 [{t, word}]。typeLine 派发时通过 _fragmentsForBracket 命中后，自动
+         降级为 typeLineWords，让 C:\> 主歌词输出按真实人声逐词出现，而不是匀速字符
+         打字。这一行被加载是逐词同步生效的前提，删它整套词级同步会回退到字符匀速。 -->
+    <script src="world-execute-sync-bracket.bundle.js"></script>
+
     <script>
         const song = document.getElementById('song');
         const overlay = document.getElementById('overlay');
@@ -6320,28 +6327,10 @@
             return el;
         }
         function dispatchWordLane(currentTime) {
-            if (!WORD_EVENTS.length) return;
-            while (_wordEvtIndex < WORD_EVENTS.length && currentTime >= WORD_EVENTS[_wordEvtIndex].t + LYRIC_OFFSET) {
-                const ev = WORD_EVENTS[_wordEvtIndex++];
-                if (ev.clear) { if (_karaokeRow) _karaokeRow.innerHTML = ''; continue; }
-                if (ev.br)    { ensureWordLane().appendChild(document.createElement('br')); continue; }
-                const span = document.createElement('span');
-                span.textContent = (ev.word != null ? String(ev.word) : '') + (ev.nospace ? '' : ' ');
-                if (ev.className) span.className = ev.className;
-                if (ev.style && typeof ev.style === 'object') Object.assign(span.style, ev.style);
-                ensureWordLane().appendChild(span);
-            }
+            /* secondary lane disabled — syllables ride C:\\ prompt via typeLineWords + __SYNC_BY_BRACKET */
         }
         function primeWordTimeline() {
-            return fetch('./world-execute-words.json', { cache: 'no-store' })
-                .then(r => (r.ok ? r.json() : null))
-                .then(data => {
-                    if (!data) return;
-                    const rows = Array.isArray(data.events) ? data.events : (Array.isArray(data) ? data : []);
-                    WORD_EVENTS = rows.filter(e => e && typeof e.t === 'number').slice().sort((a, b) => a.t - b.t);
-                    resetWordLane();
-                })
-                .catch(() => { /* file may not exist for other songs — silent */ });
+            return Promise.resolve();
         }
 
         function startExperience() {
@@ -6428,6 +6417,24 @@
         // event so notes captured via N key know which lyric/effect was on screen.
         let _lastLyricEvent = null;
 
+        function _fragmentsForBracket(bt) {
+            const map = (typeof window !== 'undefined') ? window.__SYNC_BY_BRACKET : null;
+            if (!map || bt == null || !isFinite(bt)) return null;
+            const tgt = +(+bt).toFixed(3);
+            let best = null;
+            let bestD = 0.12;
+            for (const kk of Object.keys(map)) {
+                const kf = parseFloat(kk);
+                if (!isFinite(kf)) continue;
+                const d = Math.abs(kf - tgt);
+                if (d + 1e-9 < bestD) {
+                    bestD = d;
+                    best = map[kk];
+                }
+            }
+            return best && Array.isArray(best) && best.length ? best : null;
+        }
+
         function update() {
             const currentTime = song.currentTime;
             while (currentIndex < timeline.length && currentTime >= timeline[currentIndex].time + LYRIC_OFFSET) {
@@ -6436,8 +6443,24 @@
                 if (args && typeof args.text === 'string' && args.text.trim().length > 0) {
                     _lastLyricEvent = { time: event.time, text: args.text, fn: event.func && event.func.name || '' };
                 }
-                if ((event.func === typeLine || event.func === typeLineDecay) && args.duration === undefined) {
-                    // pass remaining-window so type-speed can adapt
+                if (event.func === typeLine && !args.words && !args.forceCharByChar && !args.wordsMode) {
+                    const synced = _fragmentsForBracket(event.time);
+                    if (synced && synced.length >= 1) {
+                        typeLineWords({
+                            words: synced.map(f => ({
+                                w: f.word != null ? String(f.word) : '',
+                                t: typeof f.t === 'number' ? f.t : 0,
+                            })),
+                            className: args.className || '',
+                            style: args.style || {},
+                            onComplete: args.onComplete || null,
+                        });
+                    } else if (args.duration === undefined) {
+                        typeLine({ ...args, duration: _typingBudgetMs[currentIndex] });
+                    } else {
+                        typeLine(args);
+                    }
+                } else if (event.func === typeLineDecay && args.duration === undefined) {
                     event.func({ ...args, duration: _typingBudgetMs[currentIndex] });
                 } else {
                     event.func(args);
@@ -7074,7 +7097,7 @@
             const tick = () => {
                 if (!line.isConnected) { stop(); return; }
                 const ct = song.currentTime;
-                while (revealedCount < sortedWords.length && ct >= sortedWords[revealedCount].t) {
+                while (revealedCount < sortedWords.length && ct + 1e-4 >= sortedWords[revealedCount].t + LYRIC_OFFSET) {
                     const wd = sortedWords[revealedCount];
                     if (textSpan.textContent && !/[\s\-]$/.test(textSpan.textContent)) textSpan.textContent += ' ';
                     textSpan.textContent += wd.w;

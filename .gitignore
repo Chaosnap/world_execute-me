@@ -24,7 +24,9 @@ verify-final-exec/
 
 # audit/probe artifacts (generated)
 audit-results.csv
+verify-sine-sequence/
+_capture_video/
 
-# node
+# node (only needed for video capture scripts)
 node_modules/
 package-lock.json

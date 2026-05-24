@@ -21,6 +21,10 @@
 
         * { box-sizing: border-box; }
 
+        html {
+            font-size: 1.1vw;
+        }
+
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
@@ -35,6 +39,8 @@
             position: relative;
             width: 100%; height: 100%;
             padding: 2vw;
+            will-change: transform;
+            contain: layout style;
         }
         
         /* CRT Effects */
@@ -82,8 +88,9 @@
             width: 100%; height: 100%;
             font-size: 1.1rem;
             overflow: hidden;
-            padding: 32px 14px 32px 14px;
+            padding: 2rem 0.875rem 2rem 0.875rem;
             box-sizing: border-box;
+            transform: translateZ(0);
         }
 
         .line {
@@ -599,24 +606,27 @@
             left: -2%; right: 50%;
             background: linear-gradient(90deg, transparent 0%, rgba(110,255,199,0.05) 12%, rgba(110,255,199,0.85) 92%, #d8ffe9 100%);
             box-shadow: 0 0 14px rgba(110,255,199,0.85), 0 0 36px rgba(110,255,199,0.55);
-            animation: ust-sweep-left 1.6s cubic-bezier(.55,0,.4,1) forwards;
+            /* Shorter sweep so hit + Phase 2 read as one impact (no plateau at center). */
+            animation: ust-sweep-left 1.14s cubic-bezier(.58,0,.2,1) forwards;
         }
         .v61-unite-stage .ust-stream.right {
             left: 50%; right: -2%;
             background: linear-gradient(270deg, transparent 0%, rgba(255,106,168,0.05) 12%, rgba(255,106,168,0.85) 92%, #ffd6e6 100%);
             box-shadow: 0 0 14px rgba(255,106,168,0.85), 0 0 36px rgba(255,106,168,0.55);
-            animation: ust-sweep-right 1.6s cubic-bezier(.55,0,.4,1) forwards;
+            animation: ust-sweep-right 1.14s cubic-bezier(.58,0,.2,1) forwards;
         }
         @keyframes ust-sweep-left {
             0%   { opacity: 0; transform: translate(-50%, -50%) scaleX(0.05); }
-            18%  { opacity: 0.4; }
-            70%  { opacity: 1;   transform: translate(0, -50%) scaleX(1); }
+            14%  { opacity: 0.45; }
+            58%  { opacity: 1;   transform: translate(0, -50%) scaleX(1); }
+            82%  { opacity: 0.45; transform: translate(0, -50%) scaleX(1); }
             100% { opacity: 0;   transform: translate(0, -50%) scaleX(1); }
         }
         @keyframes ust-sweep-right {
             0%   { opacity: 0; transform: translate(50%, -50%) scaleX(0.05); }
-            18%  { opacity: 0.4; }
-            70%  { opacity: 1;   transform: translate(0, -50%) scaleX(1); }
+            14%  { opacity: 0.45; }
+            58%  { opacity: 1;   transform: translate(0, -50%) scaleX(1); }
+            82%  { opacity: 0.45; transform: translate(0, -50%) scaleX(1); }
             100% { opacity: 0;   transform: translate(0, -50%) scaleX(1); }
         }
         /* trailing particles each side — small dots that leave streaks */
@@ -630,17 +640,17 @@
         .v61-unite-stage .ust-trail.left {
             background: #6effc7;
             box-shadow: 0 0 10px #6effc7, 0 0 22px rgba(110,255,199,0.5);
-            animation: ust-trail-left 1.6s ease-out forwards;
+            animation: ust-trail-left 1.14s cubic-bezier(.45,0,.2,1) forwards;
         }
         .v61-unite-stage .ust-trail.right {
             background: #ff6aa8;
             box-shadow: 0 0 10px #ff6aa8, 0 0 22px rgba(255,106,168,0.5);
-            animation: ust-trail-right 1.6s ease-out forwards;
+            animation: ust-trail-right 1.14s cubic-bezier(.45,0,.2,1) forwards;
         }
-        @keyframes ust-trail-left  { 0%{left:-2%; opacity:0;} 12%{opacity:1;} 65%{left:50%; opacity:1;} 100%{left:50%; opacity:0;} }
-        @keyframes ust-trail-right { 0%{left:102%; opacity:0;} 12%{opacity:1;} 65%{left:50%; opacity:1;} 100%{left:50%; opacity:0;} }
+        @keyframes ust-trail-left  { 0%{left:-2%; opacity:0;} 10%{opacity:1;} 62%{left:50%; opacity:1;} 80%{opacity:0.35;} 100%{left:50%; opacity:0;} }
+        @keyframes ust-trail-right { 0%{left:102%; opacity:0;} 10%{opacity:1;} 62%{left:50%; opacity:1;} 80%{opacity:0.35;} 100%{left:50%; opacity:0;} }
 
-        /* phase 2: collision flash + merge sigil */
+        /* phase 2: flash — delay ≈ 62% of 1.14s sweep (trail meet) so center hits same frame */
         .v61-unite-stage .ust-flash {
             position: absolute;
             top: 50%; left: 50%;
@@ -650,14 +660,14 @@
             opacity: 0;
             background: radial-gradient(circle, #ffffff 0%, #ffe6f0 22%, rgba(255,180,210,0.6) 48%, rgba(160,80,140,0.0) 75%);
             mix-blend-mode: screen;
-            animation: ust-flash 1.4s ease-out forwards;
-            animation-delay: 1.4s;
+            animation: ust-flash 0.92s cubic-bezier(.2,.9,.36,1) forwards;
+            animation-delay: 0.71s;
             box-shadow: 0 0 60px rgba(255,255,255,0.8);
         }
         @keyframes ust-flash {
             0%   { opacity: 0; width: 0; height: 0; }
-            12%  { opacity: 1; width: 280px; height: 280px; }
-            45%  { opacity: 0.85; width: 260px; height: 260px; }
+            8%   { opacity: 1; width: 288px; height: 288px; }
+            38%  { opacity: 0.88; width: 266px; height: 266px; }
             100% { opacity: 0; width: 200px; height: 200px; }
         }
         .v61-unite-stage .ust-sigil {
@@ -674,7 +684,7 @@
             letter-spacing: 1.2px;
             white-space: pre;
             animation: ust-sigil 2.0s cubic-bezier(.2,1,.4,1) forwards;
-            animation-delay: 1.55s;
+            animation-delay: 0.78s;
         }
         @keyframes ust-sigil {
             0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.55); }
@@ -683,9 +693,7 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
         }
 
-        /* phase 3: depth rings — concentric, fade in sequence to feel "deeply".
-           V6.1.4: ring anim shortened 2.2s → 1.6s, ring count reduced to 4 in JS,
-           stagger 0.18s → 0.12s. Total scene now 3.4s vs the 3.76s nextClear. */
+        /* phase 3: depth rings — concentric; ring delays from JS align to impact (~0.705s). */
         .v61-unite-stage .ust-ring {
             position: absolute;
             top: 50%; left: 50%;
@@ -714,8 +722,8 @@
             background:
                 radial-gradient(circle at 50% 50%, rgba(80,20,60,0.0) 0%, rgba(120,40,90,0.45) 38%, rgba(60,10,50,0.85) 70%, rgba(20,4,18,0.95) 100%);
             mix-blend-mode: multiply;
-            animation: ust-well 1.6s ease-out forwards;
-            animation-delay: 1.7s;
+            animation: ust-well 1.45s ease-out forwards;
+            animation-delay: 0.73s;
             filter: blur(2px);
         }
         @keyframes ust-well {
@@ -734,8 +742,8 @@
             color: rgba(255, 200, 220, 0.92);
             text-shadow: 0 0 10px rgba(255,140,180,0.85), 0 0 28px rgba(255,90,150,0.7);
             opacity: 0;
-            animation: ust-deeply 1.7s ease-in-out forwards;
-            animation-delay: 1.6s;
+            animation: ust-deeply 1.55s ease-in-out forwards;
+            animation-delay: 0.72s;
             mix-blend-mode: screen;
         }
         @keyframes ust-deeply {
@@ -3761,7 +3769,7 @@
             border: 1px solid #ff6e91;
             color: #ffd0e0;
             font-family: var(--font-main);
-            font-size: 11px;
+            font-size: 0.6875rem;
             line-height: 1.55;
             padding: 8px 10px;
             z-index: 50;
@@ -3789,7 +3797,7 @@
             margin-right: 8px;
             border-radius: 2px;
             letter-spacing: 2px;
-            font-size: 10px;
+            font-size: 0.625rem;
         }
         .pointless-wipe-log .pwl-progress {
             position: relative;
@@ -3810,7 +3818,7 @@
             position: absolute;
             top: -1px;
             right: 6px;
-            font-size: 10px;
+            font-size: 0.625rem;
             color: #ffd0e0;
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
         }
@@ -3818,7 +3826,7 @@
             height: 7em;
             overflow: hidden;
             color: #ffb8c8;
-            font-size: 10px;
+            font-size: 0.625rem;
             border-top: 1px dashed rgba(255, 110, 145, 0.25);
             padding-top: 4px;
         }
@@ -3836,7 +3844,7 @@
             display: flex;
             justify-content: space-between;
             color: #ff8fa9;
-            font-size: 10px;
+            font-size: 0.625rem;
             border-top: 1px dashed rgba(255, 110, 145, 0.25);
             padding-top: 4px;
         }
@@ -3851,18 +3859,18 @@
             left: 0;
             right: 0;
             top: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, rgba(255, 110, 145, 0.95) 50%, transparent);
-            box-shadow: 0 0 24px rgba(255, 110, 145, 0.85), 0 0 60px rgba(255, 80, 112, 0.5);
+            height: 6px;
+            background: linear-gradient(90deg, transparent, rgba(255, 120, 150, 0.55) 25%, rgba(255, 255, 255, 1) 50%, rgba(255, 120, 150, 0.55) 75%, transparent);
+            box-shadow: 0 0 36px rgba(255, 110, 145, 0.95), 0 0 90px rgba(255, 40, 80, 0.65), inset 0 0 12px rgba(255,255,255,0.45);
             z-index: 40;
             pointer-events: none;
-            animation: pwlScanSweep 2.40s 0.10s ease-out forwards;
+            animation: pwlScanSweep 1.75s 0.08s cubic-bezier(.25,.85,.38,1) forwards;
         }
         @keyframes pwlScanSweep {
-            0%   { top: 0;     opacity: 0; }
-            10%  { opacity: 1; }
-            92%  { opacity: 1; }
-            100% { top: 100vh; opacity: 0; }
+            0%   { top: 0;     opacity: 0; filter: brightness(1); }
+            12%  { opacity: 1; filter: brightness(1.9); }
+            88%  { opacity: 1; filter: brightness(1.15); }
+            100% { top: 100vh; opacity: 0; filter: brightness(1); }
         }
         /* edge vignette that bleeds in pink during the wipe */
         .pointless-wipe-vignette {
@@ -3870,14 +3878,16 @@
             inset: 0;
             pointer-events: none;
             z-index: 39;
-            background: radial-gradient(circle at 50% 50%, transparent 50%, rgba(255, 80, 112, 0.18) 100%);
+            background:
+                radial-gradient(circle at 50% 50%, transparent 38%, rgba(255, 40, 70, 0.22) 72%, rgba(60, 0, 12, 0.85) 100%),
+                repeating-linear-gradient(180deg, rgba(255,0,60,0.04) 0px, rgba(255,0,60,0.04) 2px, transparent 2px, transparent 8px);
             opacity: 0;
-            animation: pwlVignette 2.60s ease-out forwards;
+            animation: pwlVignette 2.35s cubic-bezier(.2,.7,.36,1) forwards;
         }
         @keyframes pwlVignette {
             0%   { opacity: 0; }
-            30%  { opacity: 1; }
-            85%  { opacity: 1; }
+            18%  { opacity: 1; }
+            82%  { opacity: 1; }
             100% { opacity: 0; }
         }
         /* ash mote field — particles spawned per dissolved element */
@@ -3889,26 +3899,34 @@
         }
         .pointless-wipe-ash .pwl-ash-mote {
             position: absolute;
-            width: 3px;
-            height: 3px;
-            background: #ff8fa9;
+            width: 4px;
+            height: 4px;
+            background: #ffa8c8;
             border-radius: 50%;
-            box-shadow: 0 0 4px rgba(255, 140, 180, 0.85);
-            animation: pwlAshDrift 0.95s ease-out forwards;
+            box-shadow: 0 0 8px rgba(255, 100, 150, 0.95), 0 0 16px rgba(255,40,70,0.55);
+            animation: pwlAshDrift 1.15s cubic-bezier(.2,.6,.42,1) forwards;
         }
         @keyframes pwlAshDrift {
-            0%   { opacity: 0.95; transform: translate(0, 0) scale(1); }
-            100% { opacity: 0; transform: translate(var(--ax), var(--ay)) scale(0.4); filter: blur(2px); }
+            0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--ax), var(--ay)) scale(0.15); filter: blur(5px); }
         }
-        /* purged elements — strike through, dim, desaturate */
+        /* purged elements — aggressive strike-through + drain */
         .pointless-purged {
             position: relative;
-            color: rgba(180, 90, 110, 0.55) !important;
+            color: rgba(120, 50, 60, 0.42) !important;
             text-decoration: line-through;
-            text-decoration-color: #ff5070;
-            text-decoration-thickness: 1.5px;
-            filter: brightness(0.6) saturate(0.5);
-            transition: color 0.20s, filter 0.20s;
+            text-decoration-color: #ff2045;
+            text-decoration-thickness: 2px;
+            filter: brightness(0.35) saturate(0.25) contrast(1.35);
+            text-shadow: 0 0 6px rgba(255,60,90,0.35);
+            transition: color 0.14s, filter 0.14s;
+            animation: pwlStrikeGlitch 0.28s ease-out;
+        }
+        @keyframes pwlStrikeGlitch {
+            0%   { transform: translateX(0); }
+            20%  { transform: translateX(-2px) skewX(-0.8deg); }
+            55%  { transform: translateX(3px) skewX(0.6deg); }
+            100% { transform: translateX(0); }
         }
 
         /* FRAGMENTS — V6.3: memory shards crumbling in vacuum.
@@ -3927,9 +3945,10 @@
         .kfx-fragments::before {
             content: '';
             position: absolute; inset: 0;
-            background: radial-gradient(ellipse at center, rgba(176,102,255,0.10) 0%, rgba(0,0,0,0.0) 28%, rgba(0,0,0,0.55) 100%);
+            background:
+                radial-gradient(ellipse at center, rgba(255,65,105,0.22) 0%, rgba(40,10,44,0.35) 40%, rgba(0,0,0,0.72) 100%);
             opacity: 0;
-            animation: hkRowIn 0.4s 0.05s forwards, hkRowOut 0.45s 2.0s forwards;
+            animation: hkRowIn 0.38s 0.04s forwards, hkRowOut 0.50s 1.85s forwards;
         }
         @keyframes hkRowOut { to { opacity: 0; transform: translateX(-50%) translateY(-6px); filter: blur(2px); } }
         /* HUD label */
@@ -3951,18 +3970,22 @@
         .kfx-fragments .frag-wave {
             position: absolute;
             left: 50%; top: 50%;
-            width: 30px; height: 30px;
-            border: 2px solid rgba(176,102,255,0.85);
+            width: 42px; height: 42px;
+            border: 3px solid rgba(255,90,165,1);
             border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0.2);
-            box-shadow: 0 0 18px rgba(176,102,255,0.6), inset 0 0 12px rgba(255,255,255,0.4);
+            transform: translate(-50%, -50%) scale(0.15);
+            box-shadow:
+                0 0 32px rgba(255,255,255,1),
+                0 0 64px rgba(255,65,135,1),
+                0 0 120px rgba(176,50,220,0.55),
+                inset 0 0 18px rgba(255,255,255,0.55);
             opacity: 0;
-            animation: fragWave 0.95s 0.22s cubic-bezier(.2,.6,.3,1) forwards;
+            animation: fragWave 0.78s 0.16s cubic-bezier(.12,.82,.36,1) forwards;
         }
         @keyframes fragWave {
-            0%   { opacity: 0;   transform: translate(-50%, -50%) scale(0.2);  border-width: 2px; }
-            15%  { opacity: 0.95; }
-            100% { opacity: 0;   transform: translate(-50%, -50%) scale(60);   border-width: 0.4px; filter: blur(1.5px); }
+            0%   { opacity: 0;   transform: translate(-50%, -50%) scale(0.12); border-width: 4px; }
+            14%  { opacity: 1; }
+            100% { opacity: 0;   transform: translate(-50%, -50%) scale(72);   border-width: 0px; filter: blur(3px); }
         }
         /* center DELETE :: pointless ticker */
         .kfx-fragments .frag-ticker {
@@ -3970,14 +3993,17 @@
             left: 50%; top: 50%;
             transform: translate(-50%, -50%);
             font-family: var(--font-display);
-            font-size: 1.4em;
-            letter-spacing: 5px;
+            font-size: 1.72em;
+            letter-spacing: 6px;
             color: var(--love-color);
-            text-shadow: 0 0 12px var(--love-color), 0 0 24px rgba(176,102,255,0.55);
+            text-shadow:
+                0 0 18px var(--love-color),
+                0 0 40px rgba(255,255,255,0.55),
+                0 0 56px rgba(176,102,255,0.75);
             opacity: 0;
             text-align: center;
             white-space: nowrap;
-            animation: hkRowIn 0.25s 0.10s forwards, fragTickerOut 0.30s 1.10s forwards;
+            animation: hkRowIn 0.22s 0.08s forwards, fragTickerOut 0.28s 1.03s forwards;
         }
         .kfx-fragments .frag-ticker .label { display: block; font-size: 0.55em; letter-spacing: 4px; opacity: 0.7; margin-bottom: 4px; color: rgba(255,140,200,0.85); }
         .kfx-fragments .frag-ticker .count { font-size: 1.4em; }
@@ -4044,12 +4070,12 @@
         }
         @keyframes fragShardOut {
             0%   { opacity: 1; transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1); filter: blur(0); }
-            30%  { opacity: 1; transform: translate(-50%, -50%) rotate(calc(var(--rot, 0deg) + 6deg)) scale(1.06); filter: brightness(1.6); }
+            24%  { opacity: 1; transform: translate(-50%, -50%) rotate(calc(var(--rot, 0deg) + 8deg)) scale(1.1); filter: brightness(2.15) saturate(1.4); box-shadow: 0 0 28px rgba(255,240,255,0.95); }
             100% { opacity: 0;
                    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px)))
                               rotate(calc(var(--rot, 0deg) + var(--spin, 360deg)))
                               scale(var(--sc-end, 0.2));
-                   filter: blur(4px) brightness(0.6); }
+                   filter: blur(9px) brightness(0.5); box-shadow: none; }
         }
         @keyframes fragCrackIn {
             0%   { opacity: 0; }
@@ -4778,7 +4804,7 @@
             left: 50%; top: 50%;
             transform: translate(-50%, -50%);
             font-family: var(--font-main);
-            font-size: 18px;
+            font-size: 1.125rem;
             line-height: 1em;
             color: var(--love-color);
             text-shadow:
@@ -5025,7 +5051,7 @@
             left: 5%; right: 5%;
             top: 58%;
             font-family: 'Lucida Console', 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 0.8125rem;
             line-height: 1.45em;
             color: #ff7878;
             text-shadow: 0 0 6px rgba(255,80,80,0.55);
@@ -5118,9 +5144,9 @@
             70%  { opacity: 1; transform: translate(-50%, -50%) scale(0.98); }
             100% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
         }
-        .v61-final-exec-stage .fxd-sigkill .line1 { font-size: 22px; margin-bottom: 8px; }
+        .v61-final-exec-stage .fxd-sigkill .line1 { font-size: 1.375rem; margin-bottom: 8px; }
         .v61-final-exec-stage .fxd-sigkill .line1 .kw { color: #ff3030; font-weight: bold; }
-        .v61-final-exec-stage .fxd-sigkill .line2 { font-size: 16px; color: #ff8585; opacity: 0.85; }
+        .v61-final-exec-stage .fxd-sigkill .line2 { font-size: 1rem; color: #ff8585; opacity: 0.85; }
         .v61-final-exec-stage .fxd-sigkill .line2 .num { color: #ffd040; font-weight: bold; }
 
         /* coda — quiet last words */
@@ -5135,8 +5161,8 @@
             animation: fxd-coda-in 0.7s ease-out 0.6s forwards;
         }
         @keyframes fxd-coda-in { to { opacity: 1; } }
-        .v61-final-exec-stage .fxd-coda .cm { font-size: 14px; margin-bottom: 6px; }
-        .v61-final-exec-stage .fxd-coda .ct { font-size: 12px; color: rgba(255,170,170,0.4); letter-spacing: 4px; }
+        .v61-final-exec-stage .fxd-coda .cm { font-size: 0.875rem; margin-bottom: 6px; }
+        .v61-final-exec-stage .fxd-coda .ct { font-size: 0.75rem; color: rgba(255,170,170,0.4); letter-spacing: 4px; }
 
         /* legacy v6.4 graceful-finale CSS preserved (unused — finalExecution is now
            catastrophic, but classes and keyframes stay so old verify-* scripts and
@@ -5540,7 +5566,7 @@
             fill: var(--text-color);
             font-family: 'Cambria Math', 'Times New Roman', serif;
             font-style: italic;
-            font-size: 14px;
+            font-size: 0.875rem;
             text-anchor: middle;
             opacity: 0;
             animation: hkRowIn 0.3s ease-out forwards;
@@ -5763,7 +5789,7 @@
             animation: lpCurveDraw 2.4s 0.4s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
         }
         .kfx-limit-poetic .lp-heart {
-            font-size: 22px;
+            font-size: 1.375rem;
             fill: #ff6e91;
             filter: drop-shadow(0 0 8px #ff6e91) drop-shadow(0 0 16px rgba(255,110,150,0.45));
             opacity: 0;
@@ -5782,7 +5808,7 @@
         .kfx-limit-poetic .lp-axis-label {
             fill: rgba(255,170,190,0.85);
             font-family: 'Cambria Math', 'Times New Roman', serif;
-            font-size: 18px;
+            font-size: 1.125rem;
             font-style: italic;
             opacity: 0;
             animation: hkRowIn 0.55s 1.6s ease-out forwards;
@@ -6013,11 +6039,8 @@
         <div id="visuals"></div>
     </div>
 
-    <!-- V6.1.5: 逐词时间表 — 由 assets/world-execute-me.enhanced.lrc 经 parse-enhanced-lrc.cjs
-         生成，定义 window.__SYNC_BY_BRACKET：以 timeline 的 LRC bracket 时间为 key，
-         值为 [{t, word}]。typeLine 派发时通过 _fragmentsForBracket 命中后，自动
-         降级为 typeLineWords，让 C:\> 主歌词输出按真实人声逐词出现，而不是匀速字符
-         打字。这一行被加载是逐词同步生效的前提，删它整套词级同步会回退到字符匀速。 -->
+    <!-- V6.1.6: Enhanced LRC 词级时间 — bundle 仅供动效/RAF 查询（window.__SYNC_BY_BRACKET、
+         window._fragmentsForBracket）。C:\\> 歌词仍只用 typeLine + 两条事件间隔算出的匀速字符预算。 -->
     <script src="world-execute-sync-bracket.bundle.js"></script>
 
     <script>
@@ -6327,7 +6350,7 @@
             return el;
         }
         function dispatchWordLane(currentTime) {
-            /* secondary lane disabled — syllables ride C:\\ prompt via typeLineWords + __SYNC_BY_BRACKET */
+            /* word-lane disabled; sub-line cues: __SYNC_BY_BRACKET / _fragmentsForBracket for FX only */
         }
         function primeWordTimeline() {
             return Promise.resolve();
@@ -6361,10 +6384,10 @@
         // V6.1: lyric offset (seconds). Positive = lyrics fire later than LRC time,
         // i.e. compensates for the case "lyrics feel ahead of the audio".
         // Adjust live via keyboard: [ -50ms, ] +50ms, \ reset to default.
-        // Enhanced LRC (world-execute-me.enhanced.lrc) aligns this rip → LYRIC_OFFSET 0.
-        // Legacy mp3(+1s preroll) users: tune with ] [ or set default back to +1 in one place only.
-        let LYRIC_OFFSET = 0.00;
-        const _LYRIC_OFFSET_DEFAULT = 0.00;
+        // `assets/world-execute-me.mp3` 与 enhanced LRC 仍差恒定 +1s 时用默认 +1；
+        // 与 LCR 完全贴齐的母带则改回 0 或 `[` `]` 微调。
+        let LYRIC_OFFSET = 1.00;
+        const _LYRIC_OFFSET_DEFAULT = 1.00;
 
         function _showOffsetHud() {
             let hud = document.getElementById('offset-hud');
@@ -6434,6 +6457,8 @@
             }
             return best && Array.isArray(best) && best.length ? best : null;
         }
+        // For visual/animation hooks: same lookup as lyric sync, callable from RAF.
+        if (typeof window !== 'undefined') window._fragmentsForBracket = _fragmentsForBracket;
 
         function update() {
             const currentTime = song.currentTime;
@@ -6444,18 +6469,7 @@
                     _lastLyricEvent = { time: event.time, text: args.text, fn: event.func && event.func.name || '' };
                 }
                 if (event.func === typeLine && !args.words && !args.forceCharByChar && !args.wordsMode) {
-                    const synced = _fragmentsForBracket(event.time);
-                    if (synced && synced.length >= 1) {
-                        typeLineWords({
-                            words: synced.map(f => ({
-                                w: f.word != null ? String(f.word) : '',
-                                t: typeof f.t === 'number' ? f.t : 0,
-                            })),
-                            className: args.className || '',
-                            style: args.style || {},
-                            onComplete: args.onComplete || null,
-                        });
-                    } else if (args.duration === undefined) {
+                    if (args.duration === undefined) {
                         typeLine({ ...args, duration: _typingBudgetMs[currentIndex] });
                     } else {
                         typeLine(args);
@@ -7058,65 +7072,6 @@
             _registerTyping(handle);
         }
 
-        // ==== V6.1.5: typeLineWords — word-level reveal driven by song.currentTime ====
-        // Replaces fixed-interval character typing with explicit per-word cues so
-        // each word lands EXACTLY when sung. Drives reveals from song.currentTime
-        // (not setInterval), so pause / scrub / playback-rate just work.
-        //
-        // Args:
-        //   words      — array of { w: "If", t: 1.234 } where t is ABSOLUTE
-        //                songTime in seconds (NOT relative). Use the
-        //                lyric-words export's `absSongTime` field directly.
-        //   className  — extra class on the line
-        //   onComplete — fires the moment the line is mounted (matches typeLine
-        //                semantics: visual hooks ride the lyric range, not the
-        //                end of typing)
-        //
-        // Notes:
-        //   - Spaces inserted automatically between words.
-        //   - If a word's absolute time has already passed when the function
-        //     fires, that word appears immediately (handles late dispatch /
-        //     scrubbing).
-        //   - Cursor removed shortly after the last word reveals.
-        function typeLineWords({ words, className = '', style = {}, onComplete = null }) {
-            const line = document.createElement('div');
-            line.className = `line words-mode ${className}`;
-            Object.assign(line.style, style);
-            line.innerHTML = `<span class="prompt">C:\\&gt; </span><span class="text"></span><span class="cursor"></span>`;
-            visuals.appendChild(line);
-            _lyricLineCount++;
-            if (onComplete) { try { onComplete(); } catch (e) { console.error(e); } }
-
-            const textSpan = line.querySelector('.text');
-            const cursor = line.querySelector('.cursor');
-            const sortedWords = (words || []).slice().sort((a, b) => a.t - b.t);
-            let revealedCount = 0;
-            let rafId = null;
-            const stop = () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } };
-
-            const tick = () => {
-                if (!line.isConnected) { stop(); return; }
-                const ct = song.currentTime;
-                while (revealedCount < sortedWords.length && ct + 1e-4 >= sortedWords[revealedCount].t + LYRIC_OFFSET) {
-                    const wd = sortedWords[revealedCount];
-                    if (textSpan.textContent && !/[\s\-]$/.test(textSpan.textContent)) textSpan.textContent += ' ';
-                    textSpan.textContent += wd.w;
-                    visuals.scrollTop = visuals.scrollHeight;
-                    revealedCount++;
-                }
-                if (revealedCount >= sortedWords.length) {
-                    if (cursor.parentNode) {
-                        // small post-roll then drop the cursor
-                        setTimeout(() => { if (cursor.parentNode) cursor.remove(); }, 220);
-                    }
-                    stop();
-                    return;
-                }
-                rafId = requestAnimationFrame(tick);
-            };
-            rafId = requestAnimationFrame(tick);
-        }
-
         // ==== V5: typeLineDecay — progressively corrupted lyric ====
         // decayLevel 0..5 (0 = clean, 5 = nearly unreadable)
         const _DECAY_GLYPHS = '▓▒░█╳▙▟▜▛◢◣◤◥▼▲►◄✗⌧※';
@@ -7654,7 +7609,7 @@
             // Shards now collapse 0.30-0.75s, scene finishes ~1.30s + 0.20 fade
             // ≈ 1.50s. Window before next typeLine "Then maybe…" @121.8s is 1.30s,
             // so fade overlaps slightly with start of typing — acceptable.
-            const SHARD_COUNT = 22;
+            const SHARD_COUNT = 30;
             const placed = [];
             const cxPct = 50, cyPct = 50;
             for (let i = 0; i < SHARD_COUNT; i++) {
@@ -7671,13 +7626,12 @@
                 shard.style.left = `${xPct.toFixed(1)}%`;
                 shard.style.top  = `${yPct.toFixed(1)}%`;
                 shard.style.setProperty('--rot', `${rot.toFixed(1)}deg`);
-                shard.style.setProperty('--in-d', `${(0.05 + Math.random() * 0.12).toFixed(2)}s`);
-                // V6.1.4: wave starts at 0.25s, collapses at 0.30-0.75s.
-                const tHit = 0.30 + (radiusPct / 38) * 0.45;
+                shard.style.setProperty('--in-d', `${(0.03 + Math.random() * 0.10).toFixed(2)}s`);
+                // Wave leads from ~0.16s; shards break as ring passes (~0.24–0.74s band).
+                const tHit = 0.26 + (radiusPct / 38) * 0.48;
                 shard.style.setProperty('--out-d', `${tHit.toFixed(2)}s`);
-                shard.style.setProperty('--crack-d', `${(tHit - 0.05).toFixed(2)}s`);
-                // outward motion: drift away from center as the shard collapses
-                const outDist = 60 + Math.random() * 80;
+                shard.style.setProperty('--crack-d', `${(tHit - 0.045).toFixed(2)}s`);
+                const outDist = 88 + Math.random() * 115;
                 shard.style.setProperty('--dx', `${(Math.cos(angle) * outDist).toFixed(0)}px`);
                 shard.style.setProperty('--dy', `${(Math.sin(angle) * outDist - 18).toFixed(0)}px`);
                 shard.style.setProperty('--spin', `${(Math.random() < 0.5 ? -1 : 1) * (320 + Math.random() * 360)}deg`);
@@ -7690,14 +7644,14 @@
 
             // Ash motes — bursts spawned just as each shard collapses
             placed.forEach((p) => {
-                const burst = 3 + Math.floor(Math.random() * 3);
+                const burst = 7 + Math.floor(Math.random() * 6);
                 for (let k = 0; k < burst; k++) {
                     const ash = document.createElement('div');
                     ash.className = 'frag-ash';
                     ash.style.left = `${(p.x + (Math.random() - 0.5) * 4).toFixed(1)}%`;
                     ash.style.top  = `${(p.y + (Math.random() - 0.5) * 4).toFixed(1)}%`;
                     ash.style.setProperty('--ax', `${((Math.random() - 0.5) * 70).toFixed(0)}px`);
-                    ash.style.setProperty('--ay', `${(-90 - Math.random() * 70).toFixed(0)}px`);
+                    ash.style.setProperty('--ay', `${(-110 - Math.random() * 95).toFixed(0)}px`);
                     ash.style.setProperty('--ash-d', `${(p.tHit + Math.random() * 0.18).toFixed(2)}s`);
                     layer.appendChild(ash);
                 }
@@ -8184,13 +8138,12 @@
             const flash = document.createElement('div'); flash.className = 'ust-flash';
             stage.append(flash);
 
-            // phase 3 depth rings — V6.1.4: 4 (was 5), tighter stagger so the
-            // last ring finishes at ~1.4 + 0.36 + 1.6 = 3.36s (≤ 3.76s nextClear).
+            // phase 3 depth rings — start on impact frame (paired with ust-flash delay).
             for (let i = 0; i < 4; i++) {
                 const r = document.createElement('div');
                 r.className = 'ust-ring';
                 r.style.width = r.style.height = `${60 + i * 22}px`;
-                r.style.animationDelay = `${1.40 + i * 0.12}s`;
+                r.style.animationDelay = `${0.705 + i * 0.10}s`;
                 stage.appendChild(r);
             }
             // depth well + DEEPLY label
@@ -8199,10 +8152,8 @@
             stage.append(well, dpl);
 
             container.appendChild(stage);
-            // V6.1.4: total scene 3.4s (was 4.2s); audit revealed nextClear is
-            // 3.76s, so the original would get truncated 440ms before its end —
-            // visible as an abrupt cut on the depth rings/well/deeply phases.
-            setTimeout(() => stage.remove(), 3500);
+            // V6.1.4: total scene ~2.95s rings tail; clears before next lyric wipe (~3.76s gap).
+            setTimeout(() => stage.remove(), 3000);
         }
 
         // Icon cards replacing emojis (eggplant / tomato / cat / god)
@@ -9301,11 +9252,11 @@ PRIVS: NONE`;
             const cnt    = log.querySelector('.pwl-count');
             const sts    = log.querySelector('.pwl-status');
 
-            // dissolve each target with a small staggered delay so the strike
-            // wave appears to follow the scan line down the screen.
+            // dissolve each target with a small stagger so the purge wave snaps
+            // down the viewport with the scan beam (was 250–1750ms, now hotter).
             wipeTargets.forEach((el, i) => {
                 if (!el.isConnected) return;
-                const dly = 250 + (i / Math.max(wipeTargets.length, 1)) * 1500;
+                const dly = 160 + (i / Math.max(wipeTargets.length, 1)) * 980;
                 setTimeout(() => {
                     if (!el.isConnected) return;
                     el.classList.add('pointless-purged');
@@ -9316,23 +9267,23 @@ PRIVS: NONE`;
                     if (r.width > 0 && r.height > 0) {
                         const cx = r.left + r.width / 2;
                         const cy = r.top  + r.height / 2;
-                        const burst = 2 + Math.floor(Math.random() * 3);
+                        const burst = 5 + Math.floor(Math.random() * 8);
                         for (let k = 0; k < burst; k++) {
                             const m = document.createElement('div');
                             m.className = 'pwl-ash-mote';
-                            m.style.left = `${cx + (Math.random() - 0.5) * 24}px`;
-                            m.style.top  = `${cy + (Math.random() - 0.5) * 12}px`;
-                            m.style.setProperty('--ax', `${(Math.random() - 0.5) * 80}px`);
-                            m.style.setProperty('--ay', `${-60 - Math.random() * 80}px`);
+                            m.style.left = `${cx + (Math.random() - 0.5) * 32}px`;
+                            m.style.top  = `${cy + (Math.random() - 0.5) * 18}px`;
+                            m.style.setProperty('--ax', `${(Math.random() - 0.5) * 110}px`);
+                            m.style.setProperty('--ay', `${-90 - Math.random() * 140}px`);
                             ashLayer.appendChild(m);
-                            setTimeout(() => m.remove(), 1000);
+                            setTimeout(() => m.remove(), 1200);
                         }
                     }
-                    el.style.transition = 'opacity 0.30s ease-out, filter 0.30s';
+                    el.style.transition = 'opacity 0.38s cubic-bezier(.4,0,.8,.2), filter 0.38s';
                     el.style.opacity = '0';
-                    el.style.filter = 'blur(6px) brightness(0.4)';
-                    setTimeout(() => el.remove(), 320);
-                }, dly + 350);
+                    el.style.filter = 'blur(12px) brightness(0.25) saturate(0)';
+                    setTimeout(() => el.remove(), 380);
+                }, dly + 420);
             });
 
             // tick files off in the log (≈80ms × 30 = 2.4s — finishes just
@@ -9359,7 +9310,7 @@ PRIVS: NONE`;
                 bar.style.width = `${p.toFixed(0)}%`;
                 pct.textContent = `${Math.round(p)}%`;
                 cnt.textContent = `${fileIdx} / ${totalFiles}`;
-            }, 80);
+            }, 72);
 
             // fade overlay layers after the FRAGMENTS climax has begun
             setTimeout(() => {
@@ -10255,6 +10206,8 @@ PRIVS: NONE`;
         }
 
         function varGet(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+        // Tab Recording hidden — use record.mjs (Puppeteer frame-by-frame) for HD output
     </script>
 </body>
 </html>
